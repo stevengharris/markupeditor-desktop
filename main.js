@@ -36,7 +36,10 @@ async function learnMore() {
     await shell.openExternal('https://stevengharris.github.io/markupeditor-base/')
 }
 
-/** Open an HTML file and  set the contents of the window */
+/** 
+ * Open an HTML file and  set the contents of the window.
+ * Note when setting the HTML, base is set based on the directory of the file.
+ */
 async function openDocument() {
     const { cancelled, filePaths } = await dialog.showOpenDialog({
         properties: ['openFile'],
@@ -54,12 +57,11 @@ async function openDocument() {
             }
             let webContents = BrowserWindow.getFocusedWindow()?.webContents;
             if (webContents) {
-                let base = path.dirname(filePath)
-                let setBaseCommand = `MU.setBase('${base}/')`
+                // Get rid of newlines and escape single quotes
                 let escapedText = text.replace(/(\r\n|\n|\r)/g, "").replaceAll("'", "&#039;");
-                let setHTMLCommand = `MU.setHTML('${escapedText}')`
-                webContents.executeJavaScript(setBaseCommand)
-                    .then(webContents.executeJavaScript(setHTMLCommand))
+                let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
+                let setHTMLCommand = `MU.setHTML('${escapedText}', true, '${base}')`
+                webContents.executeJavaScript(setHTMLCommand)
                     .catch((error) => {
                         console.error('Error setting contents:', error);
                     });
