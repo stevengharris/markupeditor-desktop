@@ -46,19 +46,20 @@ async function openDocument() {
     });
 
     if (!cancelled) {
-        fs.readFile(filePaths[0], 'utf8', (err, text) => {
+        let filePath = filePaths[0]
+        fs.readFile(filePath, 'utf8', (err, text) => {
             if (err) {
                 console.error('Error reading file:', err);
                 return;
             }
             let webContents = BrowserWindow.getFocusedWindow()?.webContents;
             if (webContents) {
+                let base = path.dirname(filePath)
+                let setBaseCommand = `MU.setBase('${base}/')`
                 let escapedText = text.replace(/(\r\n|\n|\r)/g, "").replaceAll("'", "&#039;");
-                let command = `MU.setHTML('${escapedText}')`
-                webContents.executeJavaScript(command)
-                    //.then((result) => {
-                    //    console.log('Result from webview function:', result);
-                    //})
+                let setHTMLCommand = `MU.setHTML('${escapedText}')`
+                webContents.executeJavaScript(setBaseCommand)
+                    .then(webContents.executeJavaScript(setHTMLCommand))
                     .catch((error) => {
                         console.error('Error setting contents:', error);
                     });
