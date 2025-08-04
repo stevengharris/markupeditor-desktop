@@ -14,13 +14,13 @@
   "build": {
     "appId": "com.stevengharris.markupeditor",
     "win": {
-      "icon": "build/icon.ico"
+      "icon": "build/markupeditor.ico"
     },
     "mac": {
-      "icon": "build/icon.icns"
+      "icon": "build/markupeditor.icns"
     },
     "linux": {
-      "icon": "build/icon.png" 
+      "icon": "build/markupeditor.png" 
     }
   },
   "scripts": {

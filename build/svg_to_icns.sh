@@ -27,4 +27,4 @@ for PARAMS in $SIZES; do
     svg2png -w $SIZE -h $SIZE "$SVG" "./icons/$ICONSET"/icon_$LABEL.png || true
 done
 iconutil -c icns "./icons/$ICONSET" || true
-rm -rf "$ICONSET"
+#rm -rf "./icons/$ICONSET"
