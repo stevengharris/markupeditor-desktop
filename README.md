@@ -1,6 +1,4 @@
-<p align="center">
-    <img alt="The MarkupEditor logo" src="https://github.com/user-attachments/assets/c67b6aa0-2576-4a0b-81d0-229ee501b59d" width="96px" height="96px" >
-</p>
+<img align="center" alt="The MarkupEditor logo" src="https://github.com/user-attachments/assets/c67b6aa0-2576-4a0b-81d0-229ee501b59d" width="96px" height="96px" >
 
 # MarkupEditor Desktop
 
@@ -41,10 +39,17 @@ Build the project.
 npm run build
 ```
 
-Open the MarkupEditor. Use the options under the File menu to open, save, etc.
+Open the MarkupEditor during development. Use the options under the File menu to open, save, etc.
 
 ```
 npm start
 ```
 
-### More TBD
+## Packaging the MarkupEditor MacOS desktop app
+
+```
+npx @electron/packager . --icon build/markupeditor.icns --overwrite
+```
+
+This will produce a MarkupEditor-${platform}-${arch} directory containing MarkupEditor.app that 
+can be double-clicked on in Finder or placed in the Applications directory for easier access.
