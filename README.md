@@ -4,7 +4,7 @@
 
 # MarkupEditor Desktop
 
-The MarkupEditor desktop application is for creating and editing HTML content. It embeds that functionality of the [MarkupEditor base]() project 
+The MarkupEditor desktop application is for creating and editing HTML content. It embeds the functionality of the [MarkupEditor base]() project 
 in an Electron app.
 
 ### Motivation
@@ -39,6 +39,12 @@ Build the project.
 
 ```
 npm run build
+```
+
+Open the MarkupEditor. Use the options under the File menu to open, save, etc.
+
+```
+npm start
 ```
 
 ### More TBD
