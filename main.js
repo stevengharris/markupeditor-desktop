@@ -69,8 +69,8 @@ async function openDocument() {
                 console.error('Error reading file:', err);
                 return;
             }
-            // Get rid of newlines and escape single quotes
-            let escapedText = text.replace(/(\r\n|\n|\r)/g, "").replaceAll("'", "&#039;");
+            // Escape newlines and single quotes
+            let escapedText = text.replace(/(\r\n|\n|\r)/g, '\\n').replaceAll("'", "&#039;");
             let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
             let setHTMLCommand = `MU.setHTML('${escapedText}', true, '${base}')`
             getWebContents()?.executeJavaScript(setHTMLCommand)
