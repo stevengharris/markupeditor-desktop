@@ -1,4 +1,4 @@
-const { app, dialog, nativeImage, BrowserWindow, Menu } = require('electron')
+const { app, dialog, nativeImage, ipcMain, BrowserWindow, Menu } = require('electron')
 const fs = require('node:fs')
 const path = require('path')
 
@@ -6,12 +6,18 @@ const createWindow = () => {
     const iconPath = path.join(__dirname, 'icons/markupeditor.icns'); // Or .ico/.icns
     const appIcon = nativeImage.createFromPath(iconPath);
     const win = new BrowserWindow({
+        webPreferences: {
+            nodeIntegration: false, // For security
+            contextIsolation: true, // For security
+            preload: path.join(__dirname, 'preload.js'),
+        },
         icon: appIcon, // Set the window icon
 })
     win.loadFile('index.html')
 }
 
 let openFilePath = null;
+const tempPath = app.getPath('temp')
 
 app.whenReady().then(() => {
     createWindow()
@@ -20,6 +26,10 @@ app.whenReady().then(() => {
     const menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(menu)
     setOpenFilePath(null)
+
+    // Respond to messages sent from from the MarkupDelegate in setup.js
+    ipcMain.on('addedImage', handleAddedImage)
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow()
@@ -32,6 +42,15 @@ app.on('window-all-closed', () => {
         app.quit()
     }
 })
+
+/** Handle the `addedImage` event when it is triggered. */
+function handleAddedImage(event, src) {
+    // For now, do nothing. This is a placeholder for now demonstrating the ipc dance between
+    // the preload.js API definition, the setup.js MarkupDelegate that triggers the event, 
+    // and the `ipcMain.on` that is set up when the app is ready.
+    console.log('handleAddedImage')
+    return;
+}
 
 function getWebContents() {
     return BrowserWindow.getFocusedWindow()?.webContents
@@ -90,21 +109,84 @@ async function newDocument() {
         });
 }
 
+/**
+ * Save the document contents to openFilePath.
+ * 
+ * `openFilePath` must already be set before calling `saveDocument`.
+ * 
+ * During the save process, all images that contain encoded data are saved 
+ * to new files <uuid>.<ext> in the `openFilePath` directory and then the 
+ * document contents are updated so the image with this data points at the 
+ * file as its new src. This lazy image file saving operation allows images 
+ * to remain in-memory until save time (for example, from being pasted-in), 
+ * so they can be added, edited, or removed before then  without needing to 
+ * worry about file cleanup if they had been saved eagerly.
+ */
 async function saveDocument() {
     if (!openFilePath) return
-    getWebContents()?.executeJavaScript('MU.getHTML()')
-        .then((html) => {
-            fs.writeFile(openFilePath, html, 'utf8', (err) => {
-                if (err) {
-                    console.error('Error writing file:', err);
-                    return;
-                }
-            })
-        })
-        .catch((error) => {
-            console.error('Error getting contents:', error);
+    let webContents = getWebContents()
+    if (!webContents) return
+    try {
+        // First get the images that have data-encoded contents
+        let srcArray = await webContents.executeJavaScript('MU.getDataImages()')
+        // Loop over all the src values, saving files and replacing the src in the document
+        for (oldSrc of srcArray) {
+            let newSrc = saveLocalImage(oldSrc)
+            if (newSrc) {
+                // If we saved the src data to a file, modify the image in the document to 
+                // its src points to the new file. The image is located in `MU.savedDataImage`
+                // by finding the image whose src value startsWith `oldSrc`.
+                await webContents.executeJavaScript(`MU.savedDataImage("${oldSrc}", "${newSrc}")`)
+            }
         }
-    );
+        // Then get the document contents and overwrite the contents of openFilePath
+        let html = await webContents.executeJavaScript('MU.getHTML()')
+        fs.writeFile(openFilePath, html, 'utf8', (err) => {
+            if (err) {
+                console.log('Error writing file:', err);
+                return;
+            }
+        })
+    } catch(error) {
+        console.log('Error saving document: ' + error)
+    }
+}
+
+/**
+ * Decode the `src` data and save as <uuid>.<ext> in the same dir as the file we are 
+ * editing, `openFilePath`. Return the name of the new file that contains the image.
+ * 
+ * @param {string} src  The img src which is encoded as data 
+ * @returns {string}    The file that was saved, <uuid>.<ext>
+ */
+function saveLocalImage(src) {
+    let {data, ext} = decodeImageDataURL(src)
+    if (!data || !ext || !openFilePath) return
+    let openFileDir = path.dirname(openFilePath)
+    const uuid = crypto.randomUUID()
+    const baseName = uuid + '.' + ext
+    let filename = path.join(openFileDir, baseName)
+    fs.writeFile(filename, data, 'utf8', (err) => {
+        if (err) {
+            console.error('Error writing file:', err);
+            return null;
+        }
+    })
+    return baseName
+}
+
+/** Return the data and extension for a file that can be saved from the encoded data of an img src. */
+function decodeImageDataURL(src) {
+    let result = {data: null, ext: null}
+    if (!src.startsWith('data')) return result
+    let srcArray = src.split(",")
+    let mime = srcArray[0].match(/:(.*?);/)[1]
+    let mimeArray = mime.split('/')
+    let type = mimeArray[0]
+    if (type != 'image') return result
+    result.ext = mimeArray[1]
+    result.data = Buffer.from(srcArray[srcArray.length - 1], 'base64')
+    return result
 }
 
 /** Save HTML contents to a file */
@@ -119,19 +201,8 @@ async function saveDocumentAs() {
     const { canceled, filePath } = await dialog.showSaveDialog(options);
 
     if (!canceled) {
-        getWebContents()?.executeJavaScript('MU.getHTML()')
-            .then((html) => {
-                fs.writeFile(filePath, html, 'utf8', (err) => {
-                    if (err) {
-                        console.error('Error writing file:', err);
-                        return;
-                    }
-                })
-            })
-            .then(()=>{setOpenFilePath(filePath)})
-            .catch((error) => {
-                console.error('Error getting contents:', error);
-            });
+        setOpenFilePath(filePath)
+        saveDocument()
     }
 }
 
