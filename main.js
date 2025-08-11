@@ -29,6 +29,7 @@ app.whenReady().then(() => {
 
     // Respond to messages sent from from the MarkupDelegate in setup.js
     ipcMain.on('addedImage', handleAddedImage)
+    ipcMain.on('insertImage', handleInsertImage)
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -50,6 +51,62 @@ function handleAddedImage(event, src) {
     // and the `ipcMain.on` that is set up when the app is ready.
     console.log('handleAddedImage')
     return;
+}
+
+async function handleInsertImage(event) {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [
+            { name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'gif'] }
+        ]
+    });
+
+    if (!canceled) {
+        let filePath = filePaths[0]
+        fs.readFile(filePath, 'base64', (err, data) => {
+            if (err) {
+                console.error('Error reading file:', err);
+                return;
+            }
+            let src = srcFromData(filePath, data)
+            if (!src) {
+                console.error('Unsupported media type')
+                return
+            }
+            let insertImageCommand = `MU.insertImage("${src}")`
+            getWebContents()?.executeJavaScript(insertImageCommand)
+                .then(()=>{console.log("Done insertImage")})
+                .catch((error) => {
+                    console.error('Error inserting image:', error);
+                });
+        });
+    }
+}
+
+function srcFromData(filePath, data) {
+    // Ref: https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
+    // data:[<media-type>][;base64],<data>
+    let src = 'data:'
+    let ext = path.extname(filePath);
+    switch(ext) {
+        case '.png': {
+            src = src + 'image/png;base64'
+            break
+        }
+        case '.gif': {
+            src = src + 'image/gif;base64'
+            break
+        }
+        case '.jpg':
+        case '.jpeg': {
+            src = src + 'image/jpeg;base64'
+            break
+        }
+        default: {
+            return null
+        }
+    }
+    return src + ',' + data
 }
 
 function getWebContents() {
@@ -183,7 +240,7 @@ function decodeImageDataURL(src) {
     let mime = srcArray[0].match(/:(.*?);/)[1]
     let mimeArray = mime.split('/')
     let type = mimeArray[0]
-    if (type != 'image') return result
+    if (!((type == 'image') || (type == 'video'))) return result
     result.ext = mimeArray[1]
     result.data = Buffer.from(srcArray[srcArray.length - 1], 'base64')
     return result
@@ -201,7 +258,14 @@ async function saveDocumentAs() {
     const { canceled, filePath } = await dialog.showSaveDialog(options);
 
     if (!canceled) {
+        // Before we re-use the `saveDocument` code, we have to do the same kind of base setting that 
+        // we do in `openDocument` so that the local references for things like img src all resolve properly.
         setOpenFilePath(filePath)
+        let webContents = getWebContents()
+        let html = await webContents.executeJavaScript('MU.getHTML()')
+        let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
+        let setHTMLCommand = `MU.setHTML('${html}', true, '${base}')`
+        await webContents.executeJavaScript(setHTMLCommand)
         saveDocument()
     }
 }
