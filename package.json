@@ -20,18 +20,18 @@
       "icon": "build/markupeditor.icns"
     },
     "linux": {
-      "icon": "build/markupeditor.png" 
+      "icon": "build/markupeditor.png"
     }
   },
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "markupeditor-base": "file:../markupeditor-base"
-  },
   "devDependencies": {
     "@electron/packager": "^18.3.6",
     "electron": "^37.2.5"
+  },
+  "dependencies": {
+    "markupeditor-base": "^0.8.0"
   }
 }
