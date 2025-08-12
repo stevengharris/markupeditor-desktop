@@ -28,8 +28,7 @@ app.whenReady().then(() => {
     setOpenFilePath(null)
 
     // Respond to messages sent from from the MarkupDelegate in setup.js
-    ipcMain.on('addedImage', handleAddedImage)
-    ipcMain.on('insertImage', handleInsertImage)
+    ipcMain.on('selectImage', handleSelectImage)
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -45,15 +44,7 @@ app.on('window-all-closed', () => {
 })
 
 /** Handle the `addedImage` event when it is triggered. */
-function handleAddedImage(event, src) {
-    // For now, do nothing. This is a placeholder for now demonstrating the ipc dance between
-    // the preload.js API definition, the setup.js MarkupDelegate that triggers the event, 
-    // and the `ipcMain.on` that is set up when the app is ready.
-    console.log('handleAddedImage')
-    return;
-}
-
-async function handleInsertImage(event) {
+async function handleSelectImage(event) {
     const { canceled, filePaths } = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [

@@ -8,14 +8,9 @@ class MarkupDelegate {
         this.changed = true
     }
 
-    markupImageAdded(editor, src, divId) {
+    markupSelectImage(editor) {
         // Ref the definition in preload.js
-        window.markupAPI.addedImage(src)
-    }
-
-    markupInsertImage(editor) {
-        // Ref the definition in preload.js
-        window.markupAPI.insertImage()
+        window.markupAPI.selectImage()
     }
 }
 

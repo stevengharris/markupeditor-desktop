@@ -2,6 +2,5 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 /** Define the markupAPI endpoints exposed via windowEvents in main */
 contextBridge.exposeInMainWorld('markupAPI', {
-    addedImage: (src) => { ipcRenderer.send('addedImage', src) },
-    insertImage: () => { ipcRenderer.send('insertImage') }
+    selectImage: () => { ipcRenderer.send('selectImage') },
 });
