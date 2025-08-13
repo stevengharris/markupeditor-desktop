@@ -324,6 +324,34 @@
   }
 }
 
+/* Toolbar-more styling */
+
+.Markup-toolbar-more {
+  display: inline-flex;
+  position: sticky;
+  overflow: visible;
+  width: 100%;
+  font-size: 24px;
+  vertical-align: middle;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  top: 0;
+  max-height: 38px;
+  padding: 2px 8px;
+  color: blue;
+  background: rgba(250, 249, 246, 0.95);
+  border-bottom: 1px solid lightgray;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  .Markup-toolbar-more {
+    color: rgb(250, 249, 246);
+    background: rgba(40, 40, 43, 0.9);
+    border-bottom: 1px solid gray;
+  }
+}
+
 /* Searchbar styling */
 
 .Markup-searchbar {
@@ -476,8 +504,7 @@
   font-size: 100%;
   line-height: 28px;
   margin-top: 2px;
-  padding-right: 4px;
-  padding-left: 4px;
+  padding: 1px 4px;
   width: 100%;
   appearance: none;
   background: #eee;
@@ -513,6 +540,16 @@
   height: 28px;
   margin-top: 8px;
   margin-bottom: 8px;
+}
+
+.Markup-prompt-buttongroup {
+  flex-shrink: 0;
+}
+
+.Markup-prompt-buttons img {
+  aspect-ratio: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .Markup-prompt-buttons .Markup-menuitem {
