@@ -1,11 +1,13 @@
 {
   "name": "markupeditor-desktop",
   "productName": "MarkupEditor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Desktop version of MarkupEditor",
   "keywords": [
     "wysiwyg",
-    "editor"
+    "html",
+    "editor",
+    "rich text"
   ],
   "license": "MIT",
   "author": "Steven G. Harris",

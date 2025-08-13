@@ -4,23 +4,41 @@
 
 # MarkupEditor Desktop
 
-The MarkupEditor desktop application is for creating and editing HTML content. It embeds the functionality of the [MarkupEditor base]() project 
-in an Electron app.
+The MarkupEditor desktop application is for creating and editing HTML content. It embeds the functionality of the 
+[MarkupEditor base](https://github.com/stevengharris/markupeditor-base) project in an Electron app with access to 
+the local file system. Images added from the local file system during editing are automatically saved to the same 
+directory as the document, so they are referenced within the HTML as local resources and not dependent on where 
+they originated.
 
-### Motivation
+## Features
 
-Like Markdown, the MarkupEditor keeps the focus on what you're writing, with a minimum of distractions. Like Markdown, it supports just enough 
-functionality to help you organize and format your writing to get your points across effectively. Unlike Markdown, the MarkupEditor's WYSIWYG 
-approach means you always see what you're writing presented properly as you write it, instead of dealing with the distractions of composing 
-text with embedded notations and the uncertainty of how that text is later translated to HTML and presented.
+The MarkupEditor's standard editing features are generally limited to what 
+[Github Flavored Markdown](https://github.github.com/gfm/) supports. It does, however, have support 
+for some functionality beyond that baseline. As a WYSIWYG editor, it supports the kind of functionality that 
+even non-developers expect when they edit a document, like image resizing and search.
 
-## Try
+* Customizable and extensible toolbar providing access to all editing features, auto-sized to width.
+* Customizable key mappings for hot-key access to editing features.
+* Paragraph styles corresponding to P, H1-H6, and `CODE`.
+* Bold, italic, underline, strikethrough, subscript, superscript, and code text formatting.
+* Insert and edit links, images (local and https src), and tables.
+* Bulleted and numbered lists.
+* Indent/outdent.
+* Comprehensive undo/redo.
+* Search.
+* Image resizing using gestures.
+* Table editing: visually select table size, add/remove row/column/header, border options.
 
-You can try the MarkupEditor out right from the [project web site](https://stevengharris.github.io/markupeditor-base/). 
-The web site has all the information you need to use the MarkupEditor in your application. If you just want to install and use
-the desktop tool, for now you need to follow the instructions below.
+## Learn More
+
+The MarkupEditor desktop application is built using the [MarkupEditor base](https://github.com/stevengharris/markupeditor-base) package. 
+You can learn more about the underlying technology and other ways it is being used by visiting the 
+[project web site](https://stevengharris.github.io/markupeditor-base/). 
 
 ## Install
+
+If you just want to install and use
+the desktop tool, for now you need to follow the instructions below.
 
 Clone the repository.
 
