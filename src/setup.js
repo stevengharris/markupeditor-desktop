@@ -1,11 +1,10 @@
 class MarkupDelegate {
 
-    constructor() {
-        this.changed = false
-    }
+    constructor() {}
 
     markupInput() {
-        this.changed = true
+        // Ref the definition in preload.js
+        window.markupAPI.changed()
     }
 
     markupSelectImage(editor) {

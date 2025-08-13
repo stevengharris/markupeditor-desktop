@@ -2,6 +2,16 @@ const { app, dialog, nativeImage, ipcMain, BrowserWindow, Menu } = require('elec
 const fs = require('node:fs')
 const path = require('path')
 
+/** The path to the currently file being edited */
+let openFilePath = null
+/** 
+ * Whether any unsaved changes have been made to the document being edited.
+ * Note that every 'input' message from the MarkupEditor sets changed to true
+ * via an ipcMain event being triggered from the MarkupDelegate.*/
+let changed = false
+/** Flag to prevent infinite loop during `quitIfApproved` */
+let isQuitting = false
+
 const createWindow = () => {
     const iconPath = path.join(__dirname, 'icons/markupeditor.icns'); // Or .ico/.icns
     const appIcon = nativeImage.createFromPath(iconPath);
@@ -12,12 +22,10 @@ const createWindow = () => {
             preload: path.join(__dirname, 'preload.js'),
         },
         icon: appIcon, // Set the window icon
-})
+    })
+    win.on('close', quitIfApproved)     // Need this *and* the app.on('before-quit')
     win.loadFile('index.html')
 }
-
-let openFilePath = null;
-const tempPath = app.getPath('temp')
 
 app.whenReady().then(() => {
     createWindow()
@@ -28,6 +36,7 @@ app.whenReady().then(() => {
     setOpenFilePath(null)
 
     // Respond to messages sent from from the MarkupDelegate in setup.js
+    ipcMain.on('changed', handleChanged)
     ipcMain.on('selectImage', handleSelectImage)
 
     app.on('activate', () => {
@@ -37,14 +46,27 @@ app.whenReady().then(() => {
     })
 })
 
+app.on('before-quit', quitIfApproved);
+
+async function quitIfApproved(event) {
+    if (isQuitting) return; // Prevent re-entering if already in the process of quitting
+    event.preventDefault(); // Prevent immediate quitting
+    isQuitting = true;
+    if (await checkSave()) app.quit()
+}
+
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
 })
 
+async function handleChanged() {
+    changed = true
+}
+
 /** Handle the `addedImage` event when it is triggered. */
-async function handleSelectImage(event) {
+async function handleSelectImage() {
     const { canceled, filePaths } = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
@@ -117,11 +139,29 @@ async function learnMore() {
     await shell.openExternal('https://stevengharris.github.io/markupeditor-base/')
 }
 
+/**
+ * Check whether to continue without saving. Return true to continue, else false.
+ */
+async function checkSave() {
+    if (!changed) return true
+    const {response} = await dialog.showMessageBox(
+        BrowserWindow.getFocusedWindow(),
+        {
+            message: "Continue without saving? You will lose your changes.",
+            buttons: ["OK", "Cancel"],
+            defaultId: 1,
+        }
+    )
+    return response == 0
+}
+
 /** 
  * Open an HTML file and  set the contents of the window.
  * Note when setting the HTML, base is set based on the directory of the file.
  */
 async function openDocument() {
+    if (!(await checkSave())) return
+    changed = false
     const { canceled, filePaths } = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
@@ -150,6 +190,8 @@ async function openDocument() {
 }
 
 async function newDocument() {
+    if (!(await checkSave())) return
+    changed = false
     getWebContents()?.executeJavaScript('MU.emptyDocument()')
         .then(() => {setOpenFilePath(null)})
         .catch((error) => {
@@ -195,6 +237,7 @@ async function saveDocument() {
                 return;
             }
         })
+        changed = false
     } catch(error) {
         console.log('Error saving document: ' + error)
     }
