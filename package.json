@@ -34,6 +34,6 @@
     "electron": "^37.2.5"
   },
   "dependencies": {
-    "markupeditor-base": "^0.8.0"
+    "markupeditor-base": "file:../markupeditor-base"
   }
 }
