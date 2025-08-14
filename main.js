@@ -4,11 +4,6 @@ const path = require('path')
 
 /** The path to the currently file being edited */
 let openFilePath = null
-/** 
- * Whether any unsaved changes have been made to the document being edited.
- * Note that every 'input' message from the MarkupEditor sets changed to true
- * via an ipcMain event being triggered from the MarkupDelegate.*/
-let changed = false
 /** Flag to prevent infinite loop during `quitIfApproved` */
 let isQuitting = false
 
@@ -36,7 +31,6 @@ app.whenReady().then(() => {
     setOpenFilePath(null)
 
     // Respond to messages sent from from the MarkupDelegate in setup.js
-    ipcMain.on('changed', handleChanged)
     ipcMain.on('selectImage', handleSelectImage)
 
     app.on('activate', () => {
@@ -50,9 +44,13 @@ app.on('before-quit', quitIfApproved);
 
 async function quitIfApproved(event) {
     if (isQuitting) return; // Prevent re-entering if already in the process of quitting
-    event.preventDefault(); // Prevent immediate quitting
     isQuitting = true;
-    if (await checkSave()) app.quit()
+    event.preventDefault(); // Prevent immediate quitting
+    if (await checkSave()) {
+        app.quit()
+    } else {
+        isQuitting = false
+    }
 }
 
 app.on('window-all-closed', () => {
@@ -60,10 +58,6 @@ app.on('window-all-closed', () => {
         app.quit()
     }
 })
-
-async function handleChanged() {
-    changed = true
-}
 
 /** Handle the `addedImage` event when it is triggered. */
 async function handleSelectImage() {
@@ -143,6 +137,7 @@ async function learnMore() {
  * Check whether to continue without saving. Return true to continue, else false.
  */
 async function checkSave() {
+    let changed = await getWebContents()?.executeJavaScript('MU.isChanged()')
     if (!changed) return true
     const {response} = await dialog.showMessageBox(
         BrowserWindow.getFocusedWindow(),
@@ -161,7 +156,6 @@ async function checkSave() {
  */
 async function openDocument() {
     if (!(await checkSave())) return
-    changed = false
     const { canceled, filePaths } = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
@@ -191,7 +185,6 @@ async function openDocument() {
 
 async function newDocument() {
     if (!(await checkSave())) return
-    changed = false
     getWebContents()?.executeJavaScript('MU.emptyDocument()')
         .then(() => {setOpenFilePath(null)})
         .catch((error) => {
@@ -237,7 +230,6 @@ async function saveDocument() {
                 return;
             }
         })
-        changed = false
     } catch(error) {
         console.log('Error saving document: ' + error)
     }

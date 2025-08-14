@@ -2,11 +2,6 @@ class MarkupDelegate {
 
     constructor() {}
 
-    markupInput() {
-        // Ref the definition in preload.js
-        window.markupAPI.changed()
-    }
-
     markupSelectImage(editor) {
         // Ref the definition in preload.js
         window.markupAPI.selectImage()
