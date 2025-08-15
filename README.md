@@ -68,7 +68,7 @@ npm start
 ## Packaging the MarkupEditor MacOS desktop app
 
 ```
-npx @electron/packager . --icon build/markupeditor.icns --overwrite
+npx @electron/packager . --icon build/markupicon.icns --overwrite
 ```
 
 This will produce a MarkupEditor-${platform}-${arch} directory containing MarkupEditor.app that 
