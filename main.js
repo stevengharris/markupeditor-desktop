@@ -28,6 +28,7 @@ const createWindow = () => {
     win.once('ready-to-show', async () => {
         let config = await getWebContents()?.executeJavaScript('MU.markupEditorConfig')
         setApplicationMenu(config)
+        setOpenFilePath(null)
         win.show()
     })
     win.loadFile('index.html')
@@ -35,7 +36,6 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
     createWindow()
-    setOpenFilePath(null)
 
     // Respond to messages sent from from the MarkupDelegate in setup.js
     ipcMain.on('selectImage', handleSelectImage)
