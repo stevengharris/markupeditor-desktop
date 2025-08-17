@@ -355,6 +355,7 @@ function macTemplate(config) {
                     label: 'Save As...',
                     click: saveDocumentAs
                 },
+                { type: 'separator' },
                 { role: 'close' }
             ]
         },
@@ -430,117 +431,369 @@ function macTemplate(config) {
     return template
 }
 
+/** Return the Format menu, the menu that corresponds to most MarkupEditor functionality */
 function formatMenu(config) {
     let menu = {label: 'Format'}
-    let {link, image, table, bullet, number, indent, outdent, bold, italic, underline, strikethrough, code, subscript, superscript, search} = config.keymap
     let submenu = []
-    if (link) {
-        submenu.push({
-            label: 'Insert Link',
-            accelerator: acceleratorFor(link),
-            click: insertLink
+    addInsertBarItems(config, submenu)
+    addStyleMenuItems(config, submenu)
+    addStyleBarItems(config, submenu)
+    addFormatBarItems(config, submenu)
+    addSearchItem(config, submenu)
+    menu.submenu = submenu
+    return menu
+}
+
+function addInsertBarItems(config, submenu) {
+    let {visibility, insertBar} = config.toolbar
+    let {link, image, table} = config.keymap
+
+    let linkItem = (visibility.insertBar && insertBar.link) || link
+    let imageItem = (visibility.insertBar && insertBar.image) || image
+    let tableItem = (visibility.insertBar && insertBar.table) || table
+
+    if (linkItem || imageItem || tableItem) {
+        if (linkItem) {
+            submenu.push({
+                label: 'Insert Link',
+                accelerator: acceleratorFor(link),
+                click: insertLink
+            })
+        }
+        if (imageItem) {
+            submenu.push({
+                label: 'Insert Image',
+                accelerator: acceleratorFor(image),
+                click: insertImage
+            })
+        }
+        if (tableItem) {
+            addTableSubmenu(config, submenu)
+        }
+        submenu.push({ type: 'separator' })
+    }
+}
+
+function addTableSubmenu(config, submenu) {
+    let {tableMenu} = config.toolbar
+    let {header, border} = tableMenu
+
+    let dropdown = { label: 'Table' }
+    let dropdownmenu = []
+
+    let createmenu = { 
+        label: 'Create',
+        submenu: [
+            {
+                label: '1 Row',
+                submenu: [
+                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 1)') } },
+                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 2)') } },
+                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 3)') } },
+                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 4)') } },
+                ]
+            },
+            {
+                label: '2 Rows',
+                submenu: [
+                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, 1)') } },
+                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, 2)') } },
+                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, 3)') } },
+                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, "4")') } },
+                ]
+            },
+            {
+                label: '3 Rows',
+                submenu: [
+                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 1)') } },
+                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 2)') } },
+                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 3)') } },
+                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 4)') } },
+                ]
+            },
+            {
+                label: '4 Rows',
+                submenu: [
+                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 1)') } },
+                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 2)') } },
+                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 3)') } },
+                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 4)') } },
+                ]
+            },
+        ]
+    }
+    dropdownmenu.push(createmenu)
+
+    let addmenu = { label: 'Add' }
+    let addsubmenu = [
+        {
+            label: "Row above",
+            click: () => { getWebContents().executeJavaScript('MU.addRow("BEFORE")') }
+        },
+        {
+            label: "Row below",
+            click: () => { getWebContents().executeJavaScript('MU.addRow("AFTER")') }
+        },
+        {
+            label: "Column before",
+            click: () => { getWebContents().executeJavaScript('MU.addCol("BEFORE")') }
+        },
+        {
+            label: "Column after",
+            click: () => { getWebContents().executeJavaScript('MU.addCol("AFTER")') }
+        }
+    ]
+    if (header) {
+        addsubmenu.push({
+            label: "Header",
+            click: () => { getWebContents().executeJavaScript('MU.addHeader()') }
         })
     }
-    if (image) {
-        submenu.push({
-            label: 'Insert Image',
-            accelerator: acceleratorFor(image),
-            click: insertImage
-        })
+    addmenu.submenu = addsubmenu
+    dropdownmenu.push(addmenu)
+
+    let deletemenu = {
+        label: 'Delete',
+        submenu: [
+            {
+                label: "Row",
+                click: () => { getWebContents().executeJavaScript('MU.deleteTableArea("ROW")') }
+            },
+            {
+                label: "Column",
+                click: () => { getWebContents().executeJavaScript('MU.deleteTableArea("COL")') }
+            },
+            {
+                label: "Table",
+                click: () => { getWebContents().executeJavaScript('MU.deleteTableArea("TABLE")') }
+            }
+        ]
     }
-    if (table) {
-        submenu.push({
-            label: 'Insert Table',
-            accelerator: acceleratorFor(table),
-            click: insertTable
-        })
+    dropdownmenu.push(deletemenu)
+
+    if (border) {
+        let bordermenu = {
+            label: 'Border',
+            submenu: [
+                {
+                    label: 'All',
+                    click: () => { getWebContents().executeJavaScript('MU.borderTable("cell")') }
+                },
+                {
+                    label: 'Outer',
+                    click: () => { getWebContents().executeJavaScript('MU.borderTable("outer")') }
+                },
+                {
+                    label: 'Header',
+                    click: () => { getWebContents().executeJavaScript('MU.borderTable("header")') }
+                },
+                {
+                    label: 'None',
+                    click: () => { getWebContents().executeJavaScript('MU.borderTable("none")') }
+                }
+            ]
+        }
+        dropdownmenu.push(bordermenu)
     }
-    if (bullet) {
-        submenu.push({
-            label: 'Bullet List',
-            accelerator: acceleratorFor(bullet),
-            click: () => { getWebContents().executeJavaScript('MU.toggleListType("UL")') }
-        })
+
+    dropdown.submenu = dropdownmenu
+    submenu.push(dropdown)
+}
+
+function addStyleMenuItems(config, submenu) {
+    let {visibility, styleMenu} = config.toolbar
+    let {p, h1, h2, h3, h4, h5, h6, pre} = config.keymap
+
+    let pItem = (visibility.styleMenu && styleMenu.p) || p
+    let h1Item = (visibility.styleMenu && styleMenu.h1) || h1
+    let h2Item = (visibility.styleMenu && styleMenu.h2) || h2
+    let h3Item = (visibility.styleMenu && styleMenu.h3) || h3
+    let h4Item = (visibility.styleMenu && styleMenu.h4) || h4
+    let h5Item = (visibility.styleMenu && styleMenu.h5) || h5
+    let h6Item = (visibility.styleMenu && styleMenu.h6) || h6
+    let preItem = (visibility.styleMenu && styleMenu.pre) || pre
+
+    if (pItem || h1Item || h2Item || h3Item || h4Item || h5Item || h6Item || preItem) {
+        let dropdown = {label: 'Style'}
+        let dropdownmenu = []
+        if (pItem) {
+            dropdownmenu.push({
+                label: pItem,   // pItem is the label to use in this case, not a bool
+                accelerator: acceleratorFor("p"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("P")') }
+            })
+        }
+        if (h1Item) {
+            dropdownmenu.push({
+                label: h1Item,   // h1Item is the label to use in this case, not a bool
+                accelerator: acceleratorFor("h1"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("H1")') }
+            })
+        }
+        if (h2Item) {
+            dropdownmenu.push({
+                label: h2Item,   // h2Item is the label to use in this case, not a bool
+                accelerator: acceleratorFor("h2"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("H2")') }
+            })
+        }
+        if (h3Item) {
+            dropdownmenu.push({
+                label: h3Item,   // h3Item is the label to use in this case, not a bool
+                accelerator: acceleratorFor("h3"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("H3")') }
+            })
+        }
+        if (h4Item) {
+            dropdownmenu.push({
+                label: h4Item,   // h4Item is the label to use in this case, not a bool
+                accelerator: acceleratorFor("h4"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("H4")') }
+            })
+        }
+        if (h5Item) {
+            dropdownmenu.push({
+                label: h5Item,   // h5Item is the label to use in this case, not a bool
+                accelerator: acceleratorFor("h5"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("H5")') }
+            })
+        }
+        if (h6Item) {
+            dropdownmenu.push({
+                label: h6Item,   // h6Item is the label to use in this case, not a bool
+                accelerator: acceleratorFor("h6"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("H6")') }
+            })
+        }
+        if (preItem) {
+            dropdownmenu.push({
+                label: preItem,   // preItem is the label to use in this case, not a bool
+                accelerator: acceleratorFor("pre"),
+                click: () => { getWebContents().executeJavaScript('MU.setStyle("PRE")') }
+            })
+        }
+        dropdown.submenu = dropdownmenu
+        submenu.push(dropdown)
+        submenu.push({ type: 'separator' })
     }
-    if (indent) {
-        submenu.push({
-            label: 'Indent',
-            accelerator: acceleratorFor(indent),
-            click: () => { getWebContents().executeJavaScript('MU.indent()') }
-        })
+}
+
+function addStyleBarItems(config, submenu) {
+    let {visibility, styleBar} = config.toolbar
+    let {bullet, number, indent, outdent} = config.keymap
+
+    let bulletItem = (visibility.styleBar && styleBar.list) || bullet
+    let numberItem = (visibility.styleBar && styleBar.list) || number
+    let indentItem = (visibility.styleBar && styleBar.dent) || indent
+    let outdentItem = (visibility.styleBar && styleBar.dent) || outdent
+
+    if (bulletItem || numberItem || indentItem || outdentItem) {
+        if (bulletItem) {
+            submenu.push({
+                label: 'Bullet List',
+                accelerator: acceleratorFor(bullet),
+                click: () => { getWebContents().executeJavaScript('MU.toggleListType("UL")') }
+            })
+        }
+        if (numberItem) {
+            submenu.push({
+                label: 'Number List',
+                accelerator: acceleratorFor(number),
+                click: () => { getWebContents().executeJavaScript('MU.toggleListType("OL")') }
+            })
+        }
+        if (indentItem) {
+            submenu.push({
+                label: 'Indent',
+                accelerator: acceleratorFor(indent),
+                click: () => { getWebContents().executeJavaScript('MU.indent()') }
+            })
+        }
+        if (outdentItem) {
+            submenu.push({
+                label: 'Outdent',
+                accelerator: acceleratorFor(outdent),
+                click: () => { getWebContents().executeJavaScript('MU.outdent()') }
+            })
+        }
+        submenu.push({ type: 'separator' })
     }
-    if (outdent) {
-        submenu.push({
-            label: 'Outdent',
-            accelerator: acceleratorFor(outdent),
-            click: () => { getWebContents().executeJavaScript('MU.outdent()') }
-        })
+}
+
+function addFormatBarItems(config, submenu) {
+    let {visibility, formatBar} = config.toolbar
+    let {bold, italic, underline, code, strikethrough, subscript, superscript} = config.keymap
+
+    let boldItem = (visibility.formatBar && formatBar.bold) || bold
+    let italicItem = (visibility.formatBar && formatBar.italic) || italic
+    let underlineItem = (visibility.formatBar && formatBar.underline) || underline
+    let codeItem = (visibility.formatBar && formatBar.code) || code
+    let strikeItem = (visibility.formatBar && formatBar.strikethrough) || strikethrough
+    let subItem = (visibility.formatBar && formatBar.subscript) || subscript
+    let supItem = (visibility.formatBar && formatBar.superscript) || superscript
+
+    if (boldItem || italicItem || underlineItem || codeItem || strikeItem || subItem || supItem) {
+        if (boldItem) {
+            submenu.push({
+                label: 'Bold',
+                accelerator: acceleratorFor(bold),
+                click: () => { getWebContents().executeJavaScript('MU.toggleBold()') }
+            })
+        }
+        if (italicItem) {
+            submenu.push({
+                label: 'Italic',
+                accelerator: acceleratorFor(italic),
+                click: () => { getWebContents().executeJavaScript('MU.toggleItalic()') }
+            })
+        }
+        if (underlineItem) {
+            submenu.push({
+                label: 'Underline',
+                accelerator: acceleratorFor(underline),
+                click: () => { getWebContents().executeJavaScript('MU.toggleUnderline()') }
+            })
+        }
+        if (codeItem) {
+            submenu.push({
+                label: 'Code',
+                accelerator: acceleratorFor(code),
+                click: () => { getWebContents().executeJavaScript('MU.toggleCode()') }
+            })
+        }
+        if (strikeItem) {
+            submenu.push({
+                label: 'Strikethrough',
+                accelerator: acceleratorFor(strikethrough),
+                click: () => { getWebContents().executeJavaScript('MU.toggleStrike()') }
+            })
+        }
+        if (subItem) {
+            submenu.push({
+                label: 'Subscript',
+                accelerator: acceleratorFor(subscript),
+                click: () => { getWebContents().executeJavaScript('MU.toggleSubscript()') }
+            })
+        }
+        if (supItem) {
+            submenu.push({
+                label: 'Superscript',
+                accelerator: acceleratorFor(superscript),
+                click: () => { getWebContents().executeJavaScript('MU.toggleSuperscript()') }
+            })
+        }
+        submenu.push({ type: 'separator' })
     }
-    if (number) {
-        submenu.push({
-            label: 'Number List',
-            accelerator: acceleratorFor(number),
-            click: () => { getWebContents().executeJavaScript('MU.toggleListType("OL")') }
-        })
-    }
-    if (bold) {
-        submenu.push({
-            label: 'Bold',
-            accelerator: acceleratorFor(bold),
-            click: () => { getWebContents().executeJavaScript('MU.toggleBold()') }
-        })
-    }
-    if (italic) {
-        submenu.push({
-            label: 'Italic',
-            accelerator: acceleratorFor(italic),
-            click: () => { getWebContents().executeJavaScript('MU.toggleItalic()') }
-        })
-    }
-    if (underline) {
-        submenu.push({
-            label: 'Underline',
-            accelerator: acceleratorFor(underline),
-            click: () => { getWebContents().executeJavaScript('MU.toggleUnderline()') }
-        })
-    }
-    if (strikethrough) {
-        submenu.push({
-            label: 'Strikethrough',
-            accelerator: acceleratorFor(strikethrough),
-            click: () => { getWebContents().executeJavaScript('MU.toggleStrike()') }
-        })
-    }
-    if (code) {
-        submenu.push({
-            label: 'Code',
-            accelerator: acceleratorFor(code),
-            click: () => { getWebContents().executeJavaScript('MU.toggleCode()') }
-        })
-    }
-    if (subscript) {
-        submenu.push({
-            label: 'Subscript',
-            accelerator: acceleratorFor(subscript),
-            click: () => { getWebContents().executeJavaScript('MU.toggleSubscript()') }
-        })
-    }
-    if (superscript) {
-        submenu.push({
-            label: 'Superscript',
-            accelerator: acceleratorFor(superscript),
-            click: () => { getWebContents().executeJavaScript('MU.toggleSuperscript()') }
-        })
-    }
-    if (search) {
+}
+
+function addSearchItem(config, submenu) {
+        if (config.toolbar.visibility.search || config.keymap.search) {
         submenu.push({
             label: 'Search',
-            accelerator: acceleratorFor(search),
+            accelerator: acceleratorFor(config.keymap.search),
             click: () => { getWebContents().executeJavaScript('MU.toggleSearch()') }
         })
     }
-    menu.submenu = submenu
-    return menu
 }
 
 /**
@@ -573,11 +826,13 @@ function acceleratorFor(keymap) {
         }
         accelerator += '+'
     }
-    let key = keys[keys.length - 1]
-    if (key.length == 1) {
-        accelerator += key.toUpperCase()
-    } else {
-        accelerator += key
+    if (keys.length > 1) {
+        let key = keys[keys.length - 1]
+        if (key.length == 1) {
+            accelerator += key.toUpperCase()
+        } else {
+            accelerator += key
+        }
     }
     return accelerator
 }
