@@ -450,7 +450,7 @@ function addInsertBarItems(config, submenu) {
 
     let linkItem = (visibility.insertBar && insertBar.link) || link
     let imageItem = (visibility.insertBar && insertBar.image) || image
-    let tableItem = (visibility.insertBar && insertBar.table) || table
+    let tableItem = (visibility.insertBar && insertBar.tableMenu) || table
 
     if (linkItem || imageItem || tableItem) {
         if (linkItem) {
@@ -475,8 +475,7 @@ function addInsertBarItems(config, submenu) {
 }
 
 function addTableSubmenu(config, submenu) {
-    let {tableMenu} = config.toolbar
-    let {header, border} = tableMenu
+    let {header, border} = config.toolbar.tableMenu
 
     let dropdown = { label: 'Table' }
     let dropdownmenu = []
