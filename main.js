@@ -1,5 +1,4 @@
 const { app, dialog, nativeImage, ipcMain, BrowserWindow, Menu } = require('electron')
-const { insertLinkCommand, insertImageCommand, toggleBold, toggleItalic, toggleCode } = require('markupeditor-base')
 const fs = require('node:fs')
 const path = require('path')
 
@@ -26,7 +25,7 @@ const createWindow = () => {
     // "standard" defaults for the MarkupEditor, but either way, the application 
     // menu contents and keymap will match.
     win.once('ready-to-show', async () => {
-        let config = await getWebContents()?.executeJavaScript('MU.markupEditorConfig')
+        let config = await getWebContents()?.executeJavaScript('MU.getMarkupEditorConfig()')
         setApplicationMenu(config)
         setOpenFilePath(null)
         win.show()
@@ -457,7 +456,7 @@ function addInsertBarItems(config, submenu) {
             submenu.push({
                 label: 'Insert Link',
                 accelerator: acceleratorFor(link),
-                click: insertLink
+                click: () => { getWebContents().executeJavaScript('MU.openLinkDialog()') }
             })
         }
         if (imageItem) {
