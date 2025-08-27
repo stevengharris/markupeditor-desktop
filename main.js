@@ -463,7 +463,7 @@ function addInsertBarItems(config, submenu) {
             submenu.push({
                 label: 'Insert Image',
                 accelerator: acceleratorFor(image),
-                click: insertImage
+                click: () => { getWebContents().executeJavaScript('MU.openImageDialog()') }
             })
         }
         if (tableItem) {
@@ -834,19 +834,6 @@ function acceleratorFor(keymap) {
     }
     return accelerator
 }
-
-function insertLink() {
-    console.log("Insert a link")
-}
-
-function insertImage() {
-    console.log("Insert an image")
-}
-
-function insertTable() {
-    console.log("Insert a table")
-}
-
 
 /** Return a template suitable for `Menu.buildFromTemplate` on a non-Mac device (haha, tested only on a Mac, though) */
 const nonMacTemplate = [
