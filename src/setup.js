@@ -12,6 +12,7 @@ new MU.MarkupEditor(
     document.querySelector('#editor'), 
     {
         placeholder: 'Edit the document...',
+        keymap: MU.KeymapConfig.desktop(),
         behavior: MU.BehaviorConfig.desktop(),
         delegate: new MarkupDelegate()
     }

@@ -819,6 +819,8 @@ function acceleratorFor(keymap) {
             case 'Meta':
                 accelerator += 'Alt'
                 break;
+            case '':
+                break;  // Ignore unless the last one, which means it is '-'
             default:
                 accelerator += key
         }
@@ -827,7 +829,13 @@ function acceleratorFor(keymap) {
     if (keys.length > 1) {
         let key = keys[keys.length - 1]
         if (key.length == 1) {
-            accelerator += key.toUpperCase()
+            if (key == '+') {
+                accelerator += 'Plus'
+            } else {
+                accelerator += key.toUpperCase()
+            }
+        } else if (key.length == 0) {
+            accelerator += 'Minus'
         } else {
             accelerator += key
         }
