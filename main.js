@@ -617,56 +617,56 @@ function addStyleMenuItems(config, submenu) {
         if (pItem) {
             dropdownmenu.push({
                 label: pItem,   // pItem is the label to use in this case, not a bool
-                accelerator: acceleratorFor("p"),
+                accelerator: acceleratorFor(p),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("P")') }
             })
         }
         if (h1Item) {
             dropdownmenu.push({
                 label: h1Item,   // h1Item is the label to use in this case, not a bool
-                accelerator: acceleratorFor("h1"),
+                accelerator: acceleratorFor(h1),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("H1")') }
             })
         }
         if (h2Item) {
             dropdownmenu.push({
                 label: h2Item,   // h2Item is the label to use in this case, not a bool
-                accelerator: acceleratorFor("h2"),
+                accelerator: acceleratorFor(h2),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("H2")') }
             })
         }
         if (h3Item) {
             dropdownmenu.push({
                 label: h3Item,   // h3Item is the label to use in this case, not a bool
-                accelerator: acceleratorFor("h3"),
+                accelerator: acceleratorFor(h3),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("H3")') }
             })
         }
         if (h4Item) {
             dropdownmenu.push({
                 label: h4Item,   // h4Item is the label to use in this case, not a bool
-                accelerator: acceleratorFor("h4"),
+                accelerator: acceleratorFor(h4),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("H4")') }
             })
         }
         if (h5Item) {
             dropdownmenu.push({
                 label: h5Item,   // h5Item is the label to use in this case, not a bool
-                accelerator: acceleratorFor("h5"),
+                accelerator: acceleratorFor(h5),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("H5")') }
             })
         }
         if (h6Item) {
             dropdownmenu.push({
                 label: h6Item,   // h6Item is the label to use in this case, not a bool
-                accelerator: acceleratorFor("h6"),
+                accelerator: acceleratorFor(h6),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("H6")') }
             })
         }
         if (preItem) {
             dropdownmenu.push({
                 label: preItem,   // preItem is the label to use in this case, not a bool
-                accelerator: acceleratorFor("pre"),
+                accelerator: acceleratorFor(pre),
                 click: () => { getWebContents().executeJavaScript('MU.setStyle("PRE")') }
             })
         }
@@ -807,6 +807,7 @@ function addSearchItem(config, submenu) {
  */
 function acceleratorFor(keymap) {
     let pm = (Array.isArray(keymap)) ? keymap[0] : keymap;
+    if (!pm) return null;
     let keys = pm.split('-')
     let accelerator = ''
     // The keys up until the last one are modifiers
