@@ -6,6 +6,8 @@ const path = require('path')
 let openFilePath = null
 /** Flag to prevent infinite loop during `quitIfApproved` */
 let isQuitting = false
+/** Whether changes have been made to the document */
+let changed = false
 
 const createWindow = () => {
     const iconPath = path.join(__dirname, 'icons/markupeditor.icns'); // Or .ico/.icns
@@ -38,6 +40,7 @@ app.whenReady().then(() => {
 
     // Respond to messages sent from from the MarkupDelegate in setup.js
     ipcMain.on('selectImage', handleSelectImage)
+    ipcMain.on('markupInput', handleMarkupInput)
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -96,6 +99,13 @@ async function handleSelectImage() {
     }
 }
 
+/** Handle the markupInput event when it is triggered, indicating that
+ * a change was made to the document.
+ */
+async function handleMarkupInput() {
+    changed = true
+}
+
 function srcFromData(filePath, data) {
     // Ref: https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/data
     // data:[<media-type>][;base64],<data>
@@ -143,7 +153,6 @@ async function learnMore() {
  * Check whether to continue without saving. Return true to continue, else false.
  */
 async function checkSave() {
-    let changed = await getWebContents()?.executeJavaScript('MU.isChanged()')
     if (!changed) return true
     const {response} = await dialog.showMessageBox(
         BrowserWindow.getFocusedWindow(),
@@ -181,7 +190,10 @@ async function openDocument() {
             let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
             let setHTMLCommand = `MU.setHTML('${escapedText}', true, '${base}')`
             getWebContents()?.executeJavaScript(setHTMLCommand)
-                .then(() => {setOpenFilePath(filePath)})
+                .then(() => {
+                    setOpenFilePath(filePath)
+                    changed = false
+                })
                 .catch((error) => {
                     console.error('Error setting contents:', error);
                 });
@@ -192,7 +204,10 @@ async function openDocument() {
 async function newDocument() {
     if (!(await checkSave())) return
     getWebContents()?.executeJavaScript('MU.emptyDocument()')
-        .then(() => {setOpenFilePath(null)})
+        .then(() => {
+            setOpenFilePath(null)
+            changed = false
+        })
         .catch((error) => {
             console.error('Error creating empty document:', error);
         });
