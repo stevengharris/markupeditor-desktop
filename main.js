@@ -25,7 +25,7 @@ const createWindow = () => {
     // "standard" defaults for the MarkupEditor, but either way, the application 
     // menu contents and keymap will match.
     win.once('ready-to-show', async () => {
-        let config = await getWebContents()?.executeJavaScript('MU.getMarkupEditorConfig()')
+        let config = await getWebContents()?.executeJavaScript('MU.activeConfig()')
         setApplicationMenu(config)
         setOpenFilePath(null)
         win.show()
