@@ -243,13 +243,15 @@ async function saveDocument() {
                 await webContents.executeJavaScript(`MU.savedDataImage("${oldSrc}", "${newSrc}")`)
             }
         }
-        // Then get the document contents and overwrite the contents of openFilePath
+        // Then get the document contents and overwrite the contents of openFilePath,
+        // flagging that the document has no changes compared to the one on openFilePath.
         let html = await webContents.executeJavaScript('MU.getHTML()')
         fs.writeFile(openFilePath, html, 'utf8', (err) => {
             if (err) {
                 console.log('Error writing file:', err);
                 return;
             }
+            changed = false
         })
     } catch(error) {
         console.log('Error saving document: ' + error)
