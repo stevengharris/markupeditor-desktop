@@ -17,37 +17,11 @@ class DesktopDelegate {
     }
 }
 
-/** A ToolbarConfig suitable for desktop usage, featuring a full toolbar. */
-class DesktopToolbar {
-
-    constructor() {
-        Object.assign(this, MU.ToolbarConfig.desktop())
-    }
-}
-
-/** A BehaviorConfig suitable for desktop usage, featuring selection of local images. */
-class DesktopBehavior {
-    
-    constructor() {
-        Object.assign(this, MU.BehaviorConfig.desktop())
-    }
-
-}
-
-/** A KeymapConfig suitable for desktop usage, featuring hotkeys for underline, sub and superscript. */
-class DesktopKeymap {
-
-    constructor() {
-        Object.assign(this, MU.KeymapConfig.desktop())
-    }
-}
-
 /**
- * We must register the MarkupDelegate and configs, so that they can be looked up 
+ * We must register the DesktopDelegate and configs, so that they can be looked up 
  * later by name in the MarkupEditor web component.
  */
-
 MU.registerDelegate(new DesktopDelegate())
-MU.registerConfig(new DesktopToolbar())
-MU.registerConfig(new DesktopBehavior())
-MU.registerConfig(new DesktopKeymap())
+MU.registerConfig(MU.ToolbarConfig.desktop(), 'DesktopToolbar')     // A ToolbarConfig suitable for desktop usage, featuring a full toolbar.
+MU.registerConfig(MU.BehaviorConfig.desktop(), 'DesktopBehavior')   // A BehaviorConfig suitable for desktop usage, featuring selection of local images.
+MU.registerConfig(MU.KeymapConfig.desktop(), 'DesktopKeymap')       // A KeymapConfig suitable for desktop usage, featuring hotkeys for underline, sub and superscript.
