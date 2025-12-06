@@ -2,12 +2,13 @@
   "name": "markupeditor-desktop",
   "productName": "MarkupEditor",
   "version": "1.0.1",
-  "description": "Desktop version of MarkupEditor",
+  "description": "A desktop version of the MarkupEditor for WYSIWYG HTML editing.",
   "keywords": [
     "wysiwyg",
-    "html",
     "editor",
-    "rich text"
+    "html",
+    "web-component",
+    "rich-text"
   ],
   "license": "MIT",
   "author": "Steven G. Harris",
@@ -34,6 +35,6 @@
     "electron": "^37.2.5"
   },
   "dependencies": {
-    "markupeditor-base": "file:../markupeditor-base"
+    "markupeditor": "file:../markupeditor-base"
   }
 }
