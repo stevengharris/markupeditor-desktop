@@ -1,6 +1,8 @@
-const { app, dialog, nativeImage, ipcMain, BrowserWindow, Menu } = require('electron')
-const fs = require('node:fs')
-const path = require('path')
+import { app, dialog, nativeImage, ipcMain, BrowserWindow, Menu } from 'electron'
+import fs from 'node:fs'
+import path from 'node:path'
+
+const __dirname = import.meta.dirname
 
 /** The path to the currently file being edited */
 let openFilePath = null
