@@ -1,3 +1,5 @@
+import { MU } from "../markupeditor.esm.js"
+
 /** 
  * A MarkupDelegate that invokes the `window.markupAPI` as needed for callbacks.
  * The `window.markupAPI` is defined in preload.js.
