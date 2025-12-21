@@ -13,7 +13,7 @@
   "license": "MIT",
   "author": "Steven G. Harris",
   "type": "module",
-  "main": "main.js",
+  "main": "main.mjs",
   "build": {
     "appId": "com.stevengharris.markupeditor",
     "win": {
@@ -27,7 +27,6 @@
     }
   },
   "scripts": {
-    "prepare": "sh prepare.sh",
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

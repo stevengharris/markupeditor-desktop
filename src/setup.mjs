@@ -1,4 +1,4 @@
-import { MU } from "../markupeditor.esm.js"
+import { MU } from "../markup-editor.mjs"
 
 /** 
  * A MarkupDelegate that invokes the `window.markupAPI` as needed for callbacks.
@@ -7,6 +7,11 @@ import { MU } from "../markupeditor.esm.js"
 class DesktopDelegate {
 
     constructor() {}
+
+    markupReady(editor) {
+        // Ref the definition in preload.js
+        window.markupAPI.markupReady()
+    }
 
     markupInput(editor) {
         // Ref the definition in preload.js
@@ -17,6 +22,7 @@ class DesktopDelegate {
         // Ref the definition in preload.js
         window.markupAPI.selectImage()
     }
+
 }
 
 /**

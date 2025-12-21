@@ -18,31 +18,30 @@ const createWindow = () => {
         webPreferences: {
             nodeIntegration: false, // For security
             contextIsolation: true, // For security
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload.mjs'),
         },
         icon: appIcon, // Set the window icon
     })
-    win.on('close', quitIfApproved)     // Need this *and* the app.on('before-quit')
 
-    // One-time-only, set the application menu up based on the markupEditorConfig.
-    // This way, the config can be set up explicitly in index.html or will get the 
-    // "standard" defaults for the MarkupEditor, but either way, the application 
-    // menu contents and keymap will match.
+    // Set up main to respond to the events triggered from the renderer in preload.mjs.
+    ipcMain.on('markupReady', handleMarkupReady)
+    ipcMain.on('selectImage', handleSelectImage)
+    ipcMain.on('markupInput', handleMarkupInput)
+
+    win.loadFile('index.html')
+
     win.once('ready-to-show', async () => {
-        let config = await getWebContents()?.executeJavaScript('MU.activeConfig()')
-        setApplicationMenu(config)
         setOpenFilePath(null)
         win.show()
     })
-    win.loadFile('index.html')
+
+    win.on('close', quitIfApproved)     // Need this *and* the app.on('before-quit')
+
 }
 
-app.whenReady().then(() => {
-    createWindow()
+app.whenReady().then(async () => {
 
-    // Respond to messages sent from from the MarkupDelegate in setup.js
-    ipcMain.on('selectImage', handleSelectImage)
-    ipcMain.on('markupInput', handleMarkupInput)
+    createWindow()
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -70,6 +69,19 @@ app.on('window-all-closed', () => {
     }
 })
 
+/** Handle the `markupReady` event when it is triggered after any userscript and userstyle are loaded.
+ * 
+ * Use it to set up the menu, which needs the `activeEditor` to be known. This has the advantage 
+ * that the application menu config is based on the active config, in this case set to a 
+ * desktop config in setup.mjs. This way, the config can be set up explicitly in index.html 
+ * (in this case using a `userscript` setup.mjs) or will get the "standard" defaults, but either 
+ * way, the application menu contents and keymap will match.
+ */
+async function handleMarkupReady() {
+    let config = await executeJavaScript('MU.activeConfig()')
+    setApplicationMenu(config)
+}
+
 /** Handle the `addedImage` event when it is triggered. */
 async function handleSelectImage() {
     const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -92,7 +104,7 @@ async function handleSelectImage() {
                 return
             }
             let insertImageCommand = `MU.insertImage("${src}")`
-            getWebContents()?.executeJavaScript(insertImageCommand)
+            executeJavaScript(insertImageCommand)
                 .then(()=>{console.log("Done insertImage")})
                 .catch((error) => {
                     console.error('Error inserting image:', error);
@@ -142,7 +154,7 @@ function getWebContents() {
 function setOpenFilePath(string) {
     openFilePath = string
     const saveItem = Menu.getApplicationMenu().getMenuItemById('save');
-    saveItem.enabled = string != null
+    if (saveItem) saveItem.enabled = string != null
 }
 
 /** For now, use the markupeditor-base web site for learning more about the desktop MarkupEditor */
@@ -191,7 +203,7 @@ async function openDocument() {
             let escapedText = text.replace(/(\r\n|\n|\r)/g, '\\n').replaceAll("'", "&#039;");
             let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
             let setHTMLCommand = `MU.setHTML('${escapedText}', true, '${base}')`
-            getWebContents()?.executeJavaScript(setHTMLCommand)
+            executeJavaScript(setHTMLCommand)
                 .then(() => {
                     setOpenFilePath(filePath)
                     changed = false
@@ -203,16 +215,28 @@ async function openDocument() {
     }
 }
 
+/** If web contents exist, invoke `script` */
+function executeJavaScript(muFunction) {
+    let webContents = getWebContents()
+    if (webContents) {
+        return webContents.executeJavaScript(scriptFor(muFunction))
+    } else {
+        return Promise.reject(new Error('No web contents.'))
+    }
+}
+
+function scriptFor(muFunction) {
+    return `(
+        () => {
+            let element = document.getElementsByTagName("markup-editor")[0]
+            return element?.${muFunction}
+        })()`
+}
+
 async function newDocument() {
     if (!(await checkSave())) return
-    getWebContents()?.executeJavaScript('MU.emptyDocument()')
-        .then(() => {
-            setOpenFilePath(null)
-            changed = false
-        })
-        .catch((error) => {
-            console.error('Error creating empty document:', error);
-        });
+    executeJavaScript('MU.emptyDocument()')
+        .catch(error => console.log('Script failed: ' + error));
 }
 
 /**
@@ -234,7 +258,7 @@ async function saveDocument() {
     if (!webContents) return
     try {
         // First get the images that have data-encoded contents
-        let srcArray = await webContents.executeJavaScript('MU.getDataImages()')
+        let srcArray = await executeJavaScript('MU.getDataImages()')
         // Loop over all the src values, saving files and replacing the src in the document
         for (oldSrc of srcArray) {
             let newSrc = saveLocalImage(oldSrc)
@@ -242,12 +266,12 @@ async function saveDocument() {
                 // If we saved the src data to a file, modify the image in the document to 
                 // its src points to the new file. The image is located in `MU.savedDataImage`
                 // by finding the image whose src value startsWith `oldSrc`.
-                await webContents.executeJavaScript(`MU.savedDataImage("${oldSrc}", "${newSrc}")`)
+                await executeJavaScript(`MU.savedDataImage("${oldSrc}", "${newSrc}")`)
             }
         }
         // Then get the document contents and overwrite the contents of openFilePath,
         // flagging that the document has no changes compared to the one on openFilePath.
-        let html = await webContents.executeJavaScript('MU.getHTML()')
+        let html = await executeJavaScript('MU.getHTML()')
         fs.writeFile(openFilePath, html, 'utf8', (err) => {
             if (err) {
                 console.log('Error writing file:', err);
@@ -313,10 +337,10 @@ async function saveDocumentAs() {
         // we do in `openDocument` so that the local references for things like img src all resolve properly.
         setOpenFilePath(filePath)
         let webContents = getWebContents()
-        let html = await webContents.executeJavaScript('MU.getHTML()')
+        let html = await executeJavaScript('MU.getHTML()')
         let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
         let setHTMLCommand = `MU.setHTML('${html}', true, '${base}')`
-        await webContents.executeJavaScript(setHTMLCommand)
+        await executeJavaScript(setHTMLCommand)
         saveDocument()
     }
 }
@@ -382,12 +406,16 @@ function macTemplate(config) {
             label: 'Edit',
             submenu: [
                 { 
-                    role: 'undo',
-                    accelerator: acceleratorFor(keymap.undo)
+                    label: 'Undo',
+                    // Would be nice to have an icon, but can't just use the native one
+                    accelerator: acceleratorFor(keymap.undo),
+                    click: () => { executeJavaScript('MU.doUndo()') }
                 },
                 { 
-                    role: 'redo',
-                    accelerator: acceleratorFor(keymap.redo)
+                    label: 'Redo',
+                    // Would be nice to have an icon, but can't just use the native one
+                    accelerator: acceleratorFor(keymap.redo),
+                    click: () => { executeJavaScript('MU.doRedo()') }
                 },
                 { type: 'separator' },
                 { role: 'cut' },
@@ -475,14 +503,14 @@ function addInsertBarItems(config, submenu) {
             submenu.push({
                 label: 'Insert Link',
                 accelerator: acceleratorFor(link),
-                click: () => { getWebContents().executeJavaScript('MU.openLinkDialog()') }
+                click: () => { executeJavaScript('MU.openLinkDialog()') }
             })
         }
         if (imageItem) {
             submenu.push({
                 label: 'Insert Image',
                 accelerator: acceleratorFor(image),
-                click: () => { getWebContents().executeJavaScript('MU.openImageDialog()') }
+                click: () => { executeJavaScript('MU.openImageDialog()') }
             })
         }
         if (tableItem) {
@@ -504,37 +532,37 @@ function addTableSubmenu(config, submenu) {
             {
                 label: '1 Row',
                 submenu: [
-                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 1)') } },
-                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 2)') } },
-                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 3)') } },
-                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(1, 4)') } },
+                    { label: '1 Col', click: () => { executeJavaScript('MU.insertTable(1, 1)') } },
+                    { label: '2 Cols', click: () => { executeJavaScript('MU.insertTable(1, 2)') } },
+                    { label: '3 Cols', click: () => { executeJavaScript('MU.insertTable(1, 3)') } },
+                    { label: '4 Cols', click: () => { executeJavaScript('MU.insertTable(1, 4)') } },
                 ]
             },
             {
                 label: '2 Rows',
                 submenu: [
-                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, 1)') } },
-                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, 2)') } },
-                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, 3)') } },
-                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(2, "4")') } },
+                    { label: '1 Col', click: () => { executeJavaScript('MU.insertTable(2, 1)') } },
+                    { label: '2 Cols', click: () => { executeJavaScript('MU.insertTable(2, 2)') } },
+                    { label: '3 Cols', click: () => { executeJavaScript('MU.insertTable(2, 3)') } },
+                    { label: '4 Cols', click: () => { executeJavaScript('MU.insertTable(2, "4")') } },
                 ]
             },
             {
                 label: '3 Rows',
                 submenu: [
-                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 1)') } },
-                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 2)') } },
-                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 3)') } },
-                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(3, 4)') } },
+                    { label: '1 Col', click: () => { executeJavaScript('MU.insertTable(3, 1)') } },
+                    { label: '2 Cols', click: () => { executeJavaScript('MU.insertTable(3, 2)') } },
+                    { label: '3 Cols', click: () => { executeJavaScript('MU.insertTable(3, 3)') } },
+                    { label: '4 Cols', click: () => { executeJavaScript('MU.insertTable(3, 4)') } },
                 ]
             },
             {
                 label: '4 Rows',
                 submenu: [
-                    { label: '1 Col', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 1)') } },
-                    { label: '2 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 2)') } },
-                    { label: '3 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 3)') } },
-                    { label: '4 Cols', click: () => { getWebContents().executeJavaScript('MU.insertTable(4, 4)') } },
+                    { label: '1 Col', click: () => { executeJavaScript('MU.insertTable(4, 1)') } },
+                    { label: '2 Cols', click: () => { executeJavaScript('MU.insertTable(4, 2)') } },
+                    { label: '3 Cols', click: () => { executeJavaScript('MU.insertTable(4, 3)') } },
+                    { label: '4 Cols', click: () => { executeJavaScript('MU.insertTable(4, 4)') } },
                 ]
             },
         ]
@@ -545,25 +573,25 @@ function addTableSubmenu(config, submenu) {
     let addsubmenu = [
         {
             label: "Row above",
-            click: () => { getWebContents().executeJavaScript('MU.addRow("BEFORE")') }
+            click: () => { executeJavaScript('MU.addRow("BEFORE")') }
         },
         {
             label: "Row below",
-            click: () => { getWebContents().executeJavaScript('MU.addRow("AFTER")') }
+            click: () => { executeJavaScript('MU.addRow("AFTER")') }
         },
         {
             label: "Column before",
-            click: () => { getWebContents().executeJavaScript('MU.addCol("BEFORE")') }
+            click: () => { executeJavaScript('MU.addCol("BEFORE")') }
         },
         {
             label: "Column after",
-            click: () => { getWebContents().executeJavaScript('MU.addCol("AFTER")') }
+            click: () => { executeJavaScript('MU.addCol("AFTER")') }
         }
     ]
     if (header) {
         addsubmenu.push({
             label: "Header",
-            click: () => { getWebContents().executeJavaScript('MU.addHeader()') }
+            click: () => { executeJavaScript('MU.addHeader()') }
         })
     }
     addmenu.submenu = addsubmenu
@@ -574,15 +602,15 @@ function addTableSubmenu(config, submenu) {
         submenu: [
             {
                 label: "Row",
-                click: () => { getWebContents().executeJavaScript('MU.deleteTableArea("ROW")') }
+                click: () => { executeJavaScript('MU.deleteTableArea("ROW")') }
             },
             {
                 label: "Column",
-                click: () => { getWebContents().executeJavaScript('MU.deleteTableArea("COL")') }
+                click: () => { executeJavaScript('MU.deleteTableArea("COL")') }
             },
             {
                 label: "Table",
-                click: () => { getWebContents().executeJavaScript('MU.deleteTableArea("TABLE")') }
+                click: () => { executeJavaScript('MU.deleteTableArea("TABLE")') }
             }
         ]
     }
@@ -594,19 +622,19 @@ function addTableSubmenu(config, submenu) {
             submenu: [
                 {
                     label: 'All',
-                    click: () => { getWebContents().executeJavaScript('MU.borderTable("cell")') }
+                    click: () => { executeJavaScript('MU.borderTable("cell")') }
                 },
                 {
                     label: 'Outer',
-                    click: () => { getWebContents().executeJavaScript('MU.borderTable("outer")') }
+                    click: () => { executeJavaScript('MU.borderTable("outer")') }
                 },
                 {
                     label: 'Header',
-                    click: () => { getWebContents().executeJavaScript('MU.borderTable("header")') }
+                    click: () => { executeJavaScript('MU.borderTable("header")') }
                 },
                 {
                     label: 'None',
-                    click: () => { getWebContents().executeJavaScript('MU.borderTable("none")') }
+                    click: () => { executeJavaScript('MU.borderTable("none")') }
                 }
             ]
         }
@@ -637,56 +665,56 @@ function addStyleMenuItems(config, submenu) {
             dropdownmenu.push({
                 label: pItem,   // pItem is the label to use in this case, not a bool
                 accelerator: acceleratorFor(p),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("P")') }
+                click: () => { executeJavaScript('MU.setStyle("P")') }
             })
         }
         if (h1Item) {
             dropdownmenu.push({
                 label: h1Item,   // h1Item is the label to use in this case, not a bool
                 accelerator: acceleratorFor(h1),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("H1")') }
+                click: () => { executeJavaScript('MU.setStyle("H1")') }
             })
         }
         if (h2Item) {
             dropdownmenu.push({
                 label: h2Item,   // h2Item is the label to use in this case, not a bool
                 accelerator: acceleratorFor(h2),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("H2")') }
+                click: () => { executeJavaScript('MU.setStyle("H2")') }
             })
         }
         if (h3Item) {
             dropdownmenu.push({
                 label: h3Item,   // h3Item is the label to use in this case, not a bool
                 accelerator: acceleratorFor(h3),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("H3")') }
+                click: () => { executeJavaScript('MU.setStyle("H3")') }
             })
         }
         if (h4Item) {
             dropdownmenu.push({
                 label: h4Item,   // h4Item is the label to use in this case, not a bool
                 accelerator: acceleratorFor(h4),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("H4")') }
+                click: () => { executeJavaScript('MU.setStyle("H4")') }
             })
         }
         if (h5Item) {
             dropdownmenu.push({
                 label: h5Item,   // h5Item is the label to use in this case, not a bool
                 accelerator: acceleratorFor(h5),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("H5")') }
+                click: () => { executeJavaScript('MU.setStyle("H5")') }
             })
         }
         if (h6Item) {
             dropdownmenu.push({
                 label: h6Item,   // h6Item is the label to use in this case, not a bool
                 accelerator: acceleratorFor(h6),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("H6")') }
+                click: () => { executeJavaScript('MU.setStyle("H6")') }
             })
         }
         if (preItem) {
             dropdownmenu.push({
                 label: preItem,   // preItem is the label to use in this case, not a bool
                 accelerator: acceleratorFor(pre),
-                click: () => { getWebContents().executeJavaScript('MU.setStyle("PRE")') }
+                click: () => { executeJavaScript('MU.setStyle("PRE")') }
             })
         }
         dropdown.submenu = dropdownmenu
@@ -709,28 +737,28 @@ function addStyleBarItems(config, submenu) {
             submenu.push({
                 label: 'Bullet List',
                 accelerator: acceleratorFor(bullet),
-                click: () => { getWebContents().executeJavaScript('MU.toggleListType("UL")') }
+                click: () => { executeJavaScript('MU.toggleListType("UL")') }
             })
         }
         if (numberItem) {
             submenu.push({
                 label: 'Number List',
                 accelerator: acceleratorFor(number),
-                click: () => { getWebContents().executeJavaScript('MU.toggleListType("OL")') }
+                click: () => { executeJavaScript('MU.toggleListType("OL")') }
             })
         }
         if (indentItem) {
             submenu.push({
                 label: 'Indent',
                 accelerator: acceleratorFor(indent),
-                click: () => { getWebContents().executeJavaScript('MU.indent()') }
+                click: () => { executeJavaScript('MU.indent()') }
             })
         }
         if (outdentItem) {
             submenu.push({
                 label: 'Outdent',
                 accelerator: acceleratorFor(outdent),
-                click: () => { getWebContents().executeJavaScript('MU.outdent()') }
+                click: () => { executeJavaScript('MU.outdent()') }
             })
         }
         submenu.push({ type: 'separator' })
@@ -754,49 +782,49 @@ function addFormatBarItems(config, submenu) {
             submenu.push({
                 label: 'Bold',
                 accelerator: acceleratorFor(bold),
-                click: () => { getWebContents().executeJavaScript('MU.toggleBold()') }
+                click: () => { executeJavaScript('MU.toggleBold()') }
             })
         }
         if (italicItem) {
             submenu.push({
                 label: 'Italic',
                 accelerator: acceleratorFor(italic),
-                click: () => { getWebContents().executeJavaScript('MU.toggleItalic()') }
+                click: () => { executeJavaScript('MU.toggleItalic()') }
             })
         }
         if (underlineItem) {
             submenu.push({
                 label: 'Underline',
                 accelerator: acceleratorFor(underline),
-                click: () => { getWebContents().executeJavaScript('MU.toggleUnderline()') }
+                click: () => { executeJavaScript('MU.toggleUnderline()') }
             })
         }
         if (codeItem) {
             submenu.push({
                 label: 'Code',
                 accelerator: acceleratorFor(code),
-                click: () => { getWebContents().executeJavaScript('MU.toggleCode()') }
+                click: () => { executeJavaScript('MU.toggleCode()') }
             })
         }
         if (strikeItem) {
             submenu.push({
                 label: 'Strikethrough',
                 accelerator: acceleratorFor(strikethrough),
-                click: () => { getWebContents().executeJavaScript('MU.toggleStrike()') }
+                click: () => { executeJavaScript('MU.toggleStrike()') }
             })
         }
         if (subItem) {
             submenu.push({
                 label: 'Subscript',
                 accelerator: acceleratorFor(subscript),
-                click: () => { getWebContents().executeJavaScript('MU.toggleSubscript()') }
+                click: () => { executeJavaScript('MU.toggleSubscript()') }
             })
         }
         if (supItem) {
             submenu.push({
                 label: 'Superscript',
                 accelerator: acceleratorFor(superscript),
-                click: () => { getWebContents().executeJavaScript('MU.toggleSuperscript()') }
+                click: () => { executeJavaScript('MU.toggleSuperscript()') }
             })
         }
         submenu.push({ type: 'separator' })
@@ -808,7 +836,7 @@ function addSearchItem(config, submenu) {
         submenu.push({
             label: 'Search',
             accelerator: acceleratorFor(config.keymap.search),
-            click: () => { getWebContents().executeJavaScript('MU.toggleSearch()') }
+            click: () => { executeJavaScript('MU.toggleSearch()') }
         })
     }
 }
@@ -830,7 +858,7 @@ function acceleratorFor(keymap) {
     let keys = pm.split('-')
     let accelerator = ''
     // The keys up until the last one are modifiers
-    for (i = 0; i < keys.length - 1; i++) {
+    for (let i = 0; i < keys.length - 1; i++) {
         let key = keys[i]
         switch (key) {
             case 'Mod':

@@ -10,15 +10,14 @@
 <body>
     <markup-editor 
         placeholder="Edit the document..."
-        mustyle="node_modules/markupeditor/styles/markupeditor.css"
-        userscript="src/setup.js"
-        userstyle="styles/desktop.css"
+        userscript="./src/setup.mjs"
+        userstyle="./styles/desktop.css"
         delegate="DesktopDelegate"
         toolbar="DesktopToolbar"
         behavior="DesktopBehavior"
         keymap="DesktopKeymap"
     ></markup-editor>
-    <script src="markup-editor.js" type="module"></script>
+    <script type="module" src="./markup-editor.mjs"></script>
 </body>
 
 </html>
