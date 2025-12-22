@@ -228,7 +228,7 @@ function executeJavaScript(muFunction) {
 function scriptFor(muFunction) {
     return `(
         () => {
-            let element = document.getElementsByTagName("markup-editor")[0]
+            let element = document.getElementById("markupeditor")
             return element?.${muFunction}
         })()`
 }
