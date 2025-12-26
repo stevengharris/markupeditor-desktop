@@ -19,6 +19,8 @@ even non-developers expect when they edit a document, like image resizing and se
 
 * Customizable and extensible toolbar providing access to all editing features, auto-sized to width.
 * Customizable key mappings for hot-key access to editing features.
+* Customizable ordering of toolbar contents.
+* Customizable icons for toolbar.
 * Paragraph styles corresponding to P, H1-H6, and `CODE`.
 * Bold, italic, underline, strikethrough, subscript, superscript, and code text formatting.
 * Insert and edit links, images (local and https src), and tables.
@@ -31,7 +33,7 @@ even non-developers expect when they edit a document, like image resizing and se
 
 ## Learn More
 
-The MarkupEditor desktop application is built using the [MarkupEditor base](https://github.com/stevengharris/markupeditor-base) package. 
+The MarkupEditor desktop application is built using the [markupeditor](https://github.com/stevengharris/markupeditor-base) package. 
 You can learn more about the underlying technology and other ways it is being used by visiting the 
 [project web site](https://stevengharris.github.io/markupeditor-base/). 
 
