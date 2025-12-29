@@ -253,14 +253,14 @@ async function newDocument() {
  * worry about file cleanup if they had been saved eagerly.
  */
 async function saveDocument() {
-    if (!openFilePath) return
+    if (!openFilePath) return saveDocumentAs()
     let webContents = getWebContents()
     if (!webContents) return
     try {
         // First get the images that have data-encoded contents
         let srcArray = await executeJavaScript('MU.getDataImages()')
         // Loop over all the src values, saving files and replacing the src in the document
-        for (oldSrc of srcArray) {
+        for (const oldSrc of srcArray) {
             let newSrc = saveLocalImage(oldSrc)
             if (newSrc) {
                 // If we saved the src data to a file, modify the image in the document to 
@@ -340,8 +340,9 @@ async function saveDocumentAs() {
         let html = await executeJavaScript('MU.getHTML()')
         let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
         let setHTMLCommand = `MU.setHTML('${html}', true, '${base}')`
-        await executeJavaScript(setHTMLCommand)
-        saveDocument()
+        executeJavaScript(setHTMLCommand)
+            .then(saveDocument())
+            .catch((e)=>console.log(e.message))
     }
 }
 
