@@ -78,8 +78,13 @@ app.on('window-all-closed', () => {
  * way, the application menu contents and keymap will match.
  */
 async function handleMarkupReady() {
-    let config = await executeJavaScript('MU.activeConfig()')
-    setApplicationMenu(config)
+    executeJavaScript('MU.activeConfig()')
+    .then((config) => {
+        setApplicationMenu(config)
+    })
+    .catch((error) => {
+        console.log('Internal error: ' + error)
+    })
 }
 
 /** Handle the `addedImage` event when it is triggered. */
@@ -216,12 +221,12 @@ async function openDocument() {
 }
 
 /** If web contents exist, invoke `script` */
-function executeJavaScript(muFunction) {
+async function executeJavaScript(muFunction) {
     let webContents = getWebContents()
     if (webContents) {
-        return webContents.executeJavaScript(scriptFor(muFunction))
+        return await webContents.executeJavaScript(scriptFor(muFunction))
     } else {
-        return Promise.reject(new Error('No web contents.'))
+        return await Promise.reject(new Error('No web contents.'))
     }
 }
 
@@ -256,32 +261,35 @@ async function saveDocument() {
     if (!openFilePath) return saveDocumentAs()
     let webContents = getWebContents()
     if (!webContents) return
-    try {
-        // First get the images that have data-encoded contents
-        let srcArray = await executeJavaScript('MU.getDataImages()')
-        // Loop over all the src values, saving files and replacing the src in the document
-        for (const oldSrc of srcArray) {
-            let newSrc = saveLocalImage(oldSrc)
-            if (newSrc) {
-                // If we saved the src data to a file, modify the image in the document to 
-                // its src points to the new file. The image is located in `MU.savedDataImage`
-                // by finding the image whose src value startsWith `oldSrc`.
-                await executeJavaScript(`MU.savedDataImage("${oldSrc}", "${newSrc}")`)
+    // First get the images that have data-encoded contents
+    executeJavaScript('MU.getDataImages()')
+        .then((srcArray) => {
+            // Loop over all the src values, replacing the src in the document for srcArray images
+            let i = 0
+            while (i < srcArray.length) {
+                let oldSrc = srcArray[i]
+                let newSrc = saveLocalImage(oldSrc)
+                if (newSrc) {
+                    // If we saved the src data to a file, modify the image in the document to 
+                    // its src points to the new file. The image is located in `MU.savedDataImage`
+                    // by finding the image whose src value startsWith `oldSrc`.
+                    executeJavaScript(`MU.savedDataImage("${oldSrc}", "${newSrc}")`)
+                        .then(i++)
+                } else {
+                    i++
+                }
             }
-        }
-        // Then get the document contents and overwrite the contents of openFilePath,
-        // flagging that the document has no changes compared to the one on openFilePath.
-        let html = await executeJavaScript('MU.getHTML()')
-        fs.writeFile(openFilePath, html, 'utf8', (err) => {
-            if (err) {
-                console.log('Error writing file:', err);
-                return;
-            }
-            changed = false
+            // Then get the document contents and overwrite the contents of openFilePath,
+            // flagging that the document has no changes compared to the one on openFilePath.
+            executeJavaScript('MU.getHTML()')
+                .then((html) => { 
+                    fs.writeFileSync(openFilePath, html) 
+                    changed = false
+                })
         })
-    } catch(error) {
-        console.log('Error saving document: ' + error)
-    }
+        .catch((error) => {
+            console.log('Error saving document: ' + error)
+        })
 }
 
 /**
@@ -336,13 +344,15 @@ async function saveDocumentAs() {
         // Before we re-use the `saveDocument` code, we have to do the same kind of base setting that 
         // we do in `openDocument` so that the local references for things like img src all resolve properly.
         setOpenFilePath(filePath)
-        let webContents = getWebContents()
-        let html = await executeJavaScript('MU.getHTML()')
-        let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
-        let setHTMLCommand = `MU.setHTML('${html}', true, '${base}')`
-        executeJavaScript(setHTMLCommand)
-            .then(saveDocument())
-            .catch((e)=>console.log(e.message))
+        executeJavaScript('MU.getHTML()')
+            .then((html) => {
+                let base = path.dirname(filePath) + '/'     // Don't forget the trailing slash!
+                let setHTMLCommand = `MU.setHTML('${html}', true, '${base}')`
+                executeJavaScript(setHTMLCommand)
+                    .then(saveDocument())
+            })
+            .catch((error) => console.log(error.message))
+        
     }
 }
 
