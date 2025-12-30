@@ -55,13 +55,7 @@ cd markupeditor-desktop
 npm install
 ```
 
-Build the project.
-
-```
-npm run build
-```
-
-Open the MarkupEditor during development. Use the options under the File menu to open, save, etc.
+Open the MarkupEditor. Use the options under the File menu to open, save, etc.
 
 ```
 npm start
@@ -69,9 +63,41 @@ npm start
 
 ## Packaging the MarkupEditor MacOS desktop app
 
+The project makes use of [Electron Forge](https://www.electronforge.io) to build the native desktop app.
+The forge configuration is in forge.config.mjs because everything else in this project uses ES modules,
+and the config as provided from a "normal" forge.config.js file fails to find a a "darwin" make target
+unless everything is set up to use ES modules. Sigh.
+
 ```
-npx @electron/packager . --icon build/markupicon.icns --overwrite
+npm run make
 ```
 
-This will produce a MarkupEditor-${platform}-${arch} directory containing MarkupEditor.app that 
-can be double-clicked on in Finder or placed in the Applications directory for easier access.
+Running this script will produce an `out/MarkupEditor-${platform}-${arch}` directory containing MarkupEditor.app 
+that can be double-clicked on in Finder or placed in the Applications directory for easier access.
+
+### App Icon
+
+The MarkupEditor icon is defined using SVG. To provide a proper icon for the application, it needs to be 
+repackaged into a MacOS-native .icns form, which can be created using iconutil from a set of PNG files 
+of various resolutions. To do this transformation, use the svg_to_icns.sh shell script, which in turn 
+depends on availability of svg2png, which you can install using `brew install svg2png`. See the comments 
+in icons/svg_to_icns.sh script for details.
+
+### Packaging When Using A Local Dependency On The markupeditor Project
+
+If you use a local clone of the [markupeditor](https://github.com/stevengharris/markupeditor-base) project,
+then node_modules/markupeditor will be a symlink to that clone (your package.json uses something like 
+`"markupeditor": "file:../markupeditor-base"` in `dependencies`). The Electron Forge `make` script will fail 
+during the "Finalizing package" step with an error like: `file "../markupeditor-base" links out of the package`.
+The markupeditor project files need to be present in node_modules, not a symlink. As a workaround, you can 
+copy them into place in node_modules. This kind of defeats the purpose of symlinking to the local clone 
+but is better than not being able to package from your local work. For example:
+
+```
+$ cd node_modules
+$ rm ./markupeditor                                             <- Remove the symlink
+$ mkdir markupeditor                                            <- A real directory
+$ cp -r ../../markupeditor-base/dist/ ./markupeditor/dist/      <- As specified in markupeditor package.json files
+$ cp -r ../../markupeditor-base/bin/ ./markupeditor/bin/        <- As specified in markupeditor package.json files
+$ cp -r ../../markupeditor-base/styles/ ./markupeditor/styles/  <- As specified in markupeditor package.json files
+```
