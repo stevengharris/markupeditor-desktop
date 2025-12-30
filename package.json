@@ -13,28 +13,29 @@
   "license": "MIT",
   "author": "Steven G. Harris",
   "type": "module",
-  "main": "main.mjs",
-  "build": {
-    "appId": "com.stevengharris.markupeditor",
-    "win": {
-      "icon": "build/markupeditor.ico"
-    },
-    "mac": {
-      "icon": "build/markupeditor.icns"
-    },
-    "linux": {
-      "icon": "build/markupeditor.png"
-    }
+  "config": {
+    "forge": "./forge.config.mjs"
   },
+  "main": "main.mjs",
   "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron-forge start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "devDependencies": {
-    "@electron/packager": "^18.3.6",
+    "@electron-forge/cli": "^7.10.2",
+    "@electron-forge/maker-deb": "^7.10.2",
+    "@electron-forge/maker-rpm": "^7.10.2",
+    "@electron-forge/maker-squirrel": "^7.10.2",
+    "@electron-forge/maker-zip": "^7.10.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
+    "@electron-forge/plugin-fuses": "^7.10.2",
+    "@electron/fuses": "^1.8.0",
     "electron": "^37.2.5"
   },
   "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
     "markupeditor": "file:../markupeditor-base"
   }
 }
