@@ -19,6 +19,7 @@
   "main": "main.mjs",
   "scripts": {
     "start": "electron-forge start",
+    "prestart": "sh prestart.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
     "make": "electron-forge make"
@@ -36,6 +37,6 @@
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
-    "markupeditor": "file:../markupeditor-base"
+    "markupeditor": "^0.9.0"
   }
 }
