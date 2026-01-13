@@ -81,6 +81,9 @@ async function handleMarkupReady() {
     executeJavaScript('MU.activeConfig()')
     .then((config) => {
         setApplicationMenu(config)
+        getWebContents().on('context-menu', (_event, params) => {
+            Menu.getApplicationMenu().popup()
+        })
     })
     .catch((error) => {
         console.log('Internal error: ' + error)
