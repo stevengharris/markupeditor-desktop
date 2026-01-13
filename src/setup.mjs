@@ -8,17 +8,17 @@ class DesktopDelegate {
 
     constructor() {}
 
-    markupReady(editor) {
+    markupReady() {
         // Ref the definition in preload.js
         window.markupAPI.markupReady()
     }
 
-    markupInput(editor) {
+    markupInput() {
         // Ref the definition in preload.js
         window.markupAPI.markupInput()
     }
 
-    markupSelectImage(editor) {
+    markupSelectImage() {
         // Ref the definition in preload.js
         window.markupAPI.selectImage()
     }
