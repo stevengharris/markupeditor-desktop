@@ -296,7 +296,7 @@ async function saveDocument() {
 }
 
 /**
- * Decode the `src` data and save as <uuid>.<ext> in the same dir as the file we are 
+ * Decode the `src` data and save as `<uuid>.<ext>` in the same dir as the file we are 
  * editing, `openFilePath`. Return the name of the new file that contains the image.
  * 
  * @param {string} src  The img src which is encoded as data 
@@ -423,13 +423,15 @@ function macTemplate(config) {
                     label: 'Undo',
                     // Would be nice to have an icon, but can't just use the native one
                     accelerator: acceleratorFor(keymap.undo),
-                    click: () => { executeJavaScript('MU.doUndo()') }
+                    click: () => { executeJavaScript('MU.doUndo()') },
+                    id: 'undo'
                 },
                 { 
                     label: 'Redo',
                     // Would be nice to have an icon, but can't just use the native one
                     accelerator: acceleratorFor(keymap.redo),
-                    click: () => { executeJavaScript('MU.doRedo()') }
+                    click: () => { executeJavaScript('MU.doRedo()') },
+                    id: 'redo'
                 },
                 { type: 'separator' },
                 { role: 'cut' },
