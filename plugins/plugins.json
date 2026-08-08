@@ -1,0 +1,25 @@
+{
+  "codeview": {
+    "Mermaid": {
+      "name": "Mermaid",
+      "filename": "markupeditor-codeview-mermaid.js",
+      "description": "MarkupEditor codeview plugin for Mermaid diagrams.",
+      "author": "Steven G. Harris <steven.g.harris@gmail.com>",
+      "version": "1.0.0",
+      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/markupeditor-codeview-mermaid",
+      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/markupeditor-codeview-mermaid/dist/markupeditor-codeview-mermaid.js"
+    }
+  },
+  "exporter": {
+    "DocX": {
+      "name": "DocX",
+      "filename": "markupeditor-exporter-docx.js",
+      "ext": "docx",
+      "description": "MarkupEditor exporter plugin for DOCX.",
+      "author": "Steven G. Harris <steven.g.harris@gmail.com>",
+      "version": "0.1.0",
+      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/markupeditor-exporter-docx",
+      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/markupeditor-exporter-docx/dist/markupeditor-exporter-docx.js"
+    }
+  }
+}
