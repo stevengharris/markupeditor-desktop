@@ -31049,7 +31049,7 @@ class MermaidPlugin {
 
         // We need to register the codeview plugin so that isRecognizedLanguage returns
         // true when used in the LanguageDialogItem of markupeditor-base
-        MU.registerPlugin({ name: 'mermaid', type: 'codeview' });
+        MU.registerPlugin({ name: 'Mermaid', type: 'codeview' });
 
         const plugin = this.createPlugin();
         view.updateState(view.state.reconfigure({ plugins: [plugin, ...view.state.plugins] }));
