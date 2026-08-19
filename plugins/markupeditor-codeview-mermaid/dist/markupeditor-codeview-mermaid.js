@@ -30431,7 +30431,7 @@ var mermaid_default = mermaid;
  * Wait for document loaded before starting the execution
  */
 
-const sheet = new CSSStyleSheet();sheet.replaceSync("/* Allow the PDF exporter to hide the tabs and outline when the\n   Diagram is selected. */\n\n#editor.Markup-exporting .mermaid-mode-toggle {\n  display: none;\n}\n#editor.Markup-exporting .mermaid-diagram-selected {\n  outline: none;\n}\n\n/* Diagram mode: only the <code> content collapses; the <pre> stays a\n   normal, visible box since it hosts the diagram box and tabs as real DOM\n   children.\n   Hidden by default off the static language-mermaid class (present in the\n   serialized HTML itself, schema's own toDOM) rather than opt-in via\n   .mermaid-hidden-code alone — closes the window where a full page reload\n   flashes raw mermaid source text before JS runs and adds that class.\n   JS opts back into showing raw text for the legitimate Source-mode case\n   (empty content, a render error, the user's own Source-tab click) by\n   removing .mermaid-hidden-code, exactly as it already does. */\npre > code.language-mermaid {\n  font-size: 0;\n  line-height: 0;\n}\npre > code.language-mermaid:not(.mermaid-hidden-code) {\n  font-size: unset;\n  line-height: unset;\n}\n\n.mermaid-hidden-code::selection {\n  background: transparent;\n}\n\n.mermaid-hidden-code::-moz-selection {\n  background: transparent;\n}\n\n.mermaid-hide-caret {\n  caret-color: transparent;\n}\n\n.mermaid-mode-toggle {\n  position: absolute;\n  bottom: 100%;\n  font-size: 0.75rem;\n  padding: 2px 6px;\n  border: none;\n  border-radius: 4px 4px 0 0;\n  cursor: pointer;\n  opacity: 0.6;\n  color: white;\n  background: var(--Markup-accent-color, blue);\n}\n\n.mermaid-mode-toggle:hover {\n  opacity: 0.9;\n}\n\n.mermaid-mode-toggle-active {\n  opacity: 0.9;\n}\n\n/* Applied when the code_block is too close to the top of the view for a tab to fit above */\n.mermaid-mode-toggle-below {\n  bottom: auto;\n  top: 100%;\n  border-radius: 0 0 4px 4px;\n}\n\n/* Matches markupeditor-base's .Markup-menuitem-active (toolbar.css) */\n@media (prefers-color-scheme: dark) {\n  .mermaid-mode-toggle {\n    background: var(--Markup-accent-color, lightblue);\n    color: black;\n  }\n}\n\n/* Dashed outline for diagrams when selected */\n.mermaid-diagram-selected {\n  outline: 1px var(--Markup-accent-color, blue) dashed;\n  outline-offset: 0;\n}\n\n@media (prefers-color-scheme: dark) {\n  .mermaid-diagram-selected {\n    outline: 1px var(--Markup-accent-color, lightblue) dashed;\n  }\n}\n\n.mermaid-diagram, .mermaid-placeholder {\n  margin-bottom: 15px;\n}\n\n.mermaid-placeholder {\n  border: 1px dashed #888;\n  padding: 8px;\n}\n");
+const sheet = new CSSStyleSheet();sheet.replaceSync("/* Allow the PDF exporter to hide the tabs and outline when the\n   Diagram is selected. */\n\n#editor.Markup-exporting .mermaid-mode-toggle {\n  display: none;\n}\n#editor.Markup-exporting .mermaid-diagram-selected {\n  outline: none;\n}\n\n/* Diagram mode: only the <code> content collapses; the <pre> stays a\n   normal, visible box since it hosts the diagram box and tabs as real DOM\n   children.\n   Hidden by default off the static language-mermaid class (present in the\n   serialized HTML itself, schema's own toDOM) rather than opt-in via\n   .mermaid-hidden-code alone — closes the window where a full page reload\n   flashes raw mermaid source text before JS runs and adds that class.\n   JS opts back into showing raw text for the legitimate Source-mode case\n   (empty content, a render error, the user's own Source-tab click) by\n   removing .mermaid-hidden-code, exactly as it already does. */\npre > code.language-mermaid {\n  font-size: 0;\n  line-height: 0;\n}\npre > code.language-mermaid:not(.mermaid-hidden-code) {\n  font-size: unset;\n  line-height: unset;\n}\n\n.mermaid-hidden-code::selection {\n  background: transparent;\n}\n\n.mermaid-hide-caret {\n  caret-color: transparent;\n}\n\n.mermaid-mode-toggle {\n  position: absolute;\n  bottom: 100%;\n  font-size: 0.75rem;\n  padding: 2px 6px;\n  border: none;\n  border-radius: 4px 4px 0 0;\n  cursor: pointer;\n  opacity: 0.6;\n  color: white;\n  background: var(--Markup-accent-color, blue);\n}\n\n.mermaid-mode-toggle:hover {\n  opacity: 0.9;\n}\n\n.mermaid-mode-toggle-active {\n  opacity: 0.9;\n}\n\n/* Applied when the code_block is too close to the top of the view for a tab to fit above */\n.mermaid-mode-toggle-below {\n  bottom: auto;\n  top: 100%;\n  border-radius: 0 0 4px 4px;\n}\n\n/* Matches markupeditor-base's .Markup-menuitem-active (toolbar.css) */\n@media (prefers-color-scheme: dark) {\n  .mermaid-mode-toggle {\n    background: var(--Markup-accent-color, lightblue);\n    color: black;\n  }\n}\n\n/* Dashed outline for diagrams when selected */\n.mermaid-diagram-selected {\n  outline: 1px var(--Markup-accent-color, blue) dashed;\n  outline-offset: 0;\n}\n\n@media (prefers-color-scheme: dark) {\n  .mermaid-diagram-selected {\n    outline: 1px var(--Markup-accent-color, lightblue) dashed;\n  }\n}\n\n.mermaid-diagram, .mermaid-placeholder {\n  margin-bottom: 15px;\n}\n\n.mermaid-placeholder {\n  border: 1px dashed #888;\n  padding: 8px;\n}\n");
 
 const TAB_CLASS = 'mermaid-mode-toggle';
 const TAB_ACTIVE_CLASS = 'mermaid-mode-toggle-active';
@@ -30997,7 +30997,7 @@ class MermaidPlugin {
 
     // Delegates to whatever's already installed for code_block, not assumed to
     // be CodeView specifically — composable with any other independently-loaded
-    // code_block NodeView plugin (verified in nodeview-factory-spike.test.js).
+    // code_block NodeView plugin (verified in nodeview-factory-delegation.test.js).
     makeCodeBlockFactory(originalFactory, languageDialog, mermaidViewOptions = {}) {
         return (node, view, getPos) => {
             if (isMermaidLanguage(node.attrs.language)) {
@@ -69860,6 +69860,9 @@ var elesfn$s = {
         if (tempScore < gScore[wid]) {
           gScore[wid] = tempScore;
           fScore[wid] = tempScore + heuristic(w);
+
+          // the heap is ordered by fScore, so it must be resorted for the new value
+          openSet.updateItem(w);
           cameFrom[wid] = cMin;
           cameFromEdge[wid] = e;
         }
@@ -70472,6 +70475,25 @@ var median = function median(arr) {
   } else {
     return (arr[mid - 1 + off] + arr[mid + off]) / 2;
   }
+};
+
+// https://en.wikipedia.org/wiki/Greatest_common_divisor#Euclidean_algorithm
+var _gcd = function gcd(a, b) {
+  if (b === 0) {
+    return a;
+  }
+  return _gcd(b, a % b);
+};
+var gcdMultipleZeroIfNonInt = function gcdMultipleZeroIfNonInt(arr) {
+  var out = arr[0];
+  for (var i = 0; i < arr.length; i++) {
+    if (!integer$1(arr[i])) {
+      return 0;
+    } else if (i > 0) {
+      out = _gcd(out, arr[i]);
+    }
+  }
+  return out;
 };
 var deg2rad = function deg2rad(deg) {
   return Math.PI * deg / 180;
@@ -93670,19 +93692,11 @@ BRp$3.load = function () {
     r.hoverData.mdownGPos = null;
     r.hoverData.which = null;
   }, false);
-  var wheelDeltas = []; // log of first N wheel deltas
+  var wheelDeltas = []; // log of first N wheel deltas' magnitudes
   var wheelDeltaN = 4; // how many events to log
   var inaccurateScrollDevice;
   var inaccurateScrollFactor = 100000; // base of inaccurate wheel deltas (e.g. base 5 could yield wheels of 10, 25, 50, etc.)
 
-  var allAreDivisibleBy = function allAreDivisibleBy(list, factor) {
-    for (var i = 0; i < list.length; i++) {
-      if (list[i] % factor !== 0) {
-        return false;
-      }
-    }
-    return true;
-  };
   var allAreSameMagnitude = function allAreSameMagnitude(list) {
     var firstMag = Math.abs(list[0]);
     for (var i = 1; i < list.length; i++) {
@@ -93709,25 +93723,30 @@ BRp$3.load = function () {
     if (inaccurateScrollDevice == null) {
       if (wheelDeltas.length >= wheelDeltaN) {
         // use log to determine if inaccurate
+        inaccurateScrollDevice = false;
         var wds = wheelDeltas;
-        inaccurateScrollDevice = allAreDivisibleBy(wds, 5);
-        if (!inaccurateScrollDevice) {
-          // check for all large values of exact same magnitude
-          var firstMag = Math.abs(wds[0]);
-          inaccurateScrollDevice = allAreSameMagnitude(wds) && firstMag > 5;
-        }
-        if (inaccurateScrollDevice) {
-          for (var i = 0; i < wds.length; i++) {
-            inaccurateScrollFactor = Math.min(Math.abs(wds[i]), inaccurateScrollFactor);
+        if (wds[0] >= 5) {
+          var factor;
+          // an array of equal integers "x" will have a GCD of x, so in that
+          // case there is no need to have a separate "allAreSameMagnitude"
+          // check. but the GCD function only supports integers, so keeping
+          // both checks allows arrays of equal floating-point numbers
+          if (allAreSameMagnitude(wds)) {
+            factor = wds[0];
+          } else {
+            factor = gcdMultipleZeroIfNonInt(wds);
+          }
+          if (factor > 1) {
+            inaccurateScrollDevice = true;
+            inaccurateScrollFactor = factor;
           }
         }
-
         // console.log('Sampled wheel deltas:', wds);
         // console.log('inaccurateScrollDevice:', inaccurateScrollDevice);
         // console.log('inaccurateScrollFactor:', inaccurateScrollFactor);
       } else {
         // clamp and log until we reach N
-        wheelDeltas.push(delta);
+        wheelDeltas.push(Math.abs(delta));
         clamp = true;
         // console.log('Clamping initial wheel events until we get a good sample');
       }
@@ -94226,10 +94245,14 @@ BRp$3.load = function () {
           r.redrawHint('drag', true);
           r.redrawHint('eles', true);
           _start.unactivate().emit(makeEvent('freeon'));
-          draggedEles.emit(makeEvent('free'));
+          if (draggedEles) {
+            draggedEles.emit(makeEvent('free'));
+          }
           if (r.dragData.didDrag) {
             _start.emit(makeEvent('dragfreeon'));
-            draggedEles.emit(makeEvent('dragfree'));
+            if (draggedEles) {
+              draggedEles.emit(makeEvent('dragfree'));
+            }
           }
         }
         cy.viewport({
@@ -94745,12 +94768,15 @@ BRp$2.generateRoundPolygon = function (name, points) {
     name: name,
     points: points,
     getOrCreateCorners: function getOrCreateCorners(centerX, centerY, width, height, cornerRadius, rs, field) {
-      if (rs[field] !== undefined && rs[field + '-cx'] === centerX && rs[field + '-cy'] === centerY) {
+      if (rs[field] !== undefined && rs[field + '-cx'] === centerX && rs[field + '-cy'] === centerY && rs[field + '-w'] === width && rs[field + '-h'] === height && rs[field + '-corner-radius'] === cornerRadius) {
         return rs[field];
       }
       rs[field] = new Array(points.length / 2);
       rs[field + '-cx'] = centerX;
       rs[field + '-cy'] = centerY;
+      rs[field + '-w'] = width;
+      rs[field + '-h'] = height;
+      rs[field + '-corner-radius'] = cornerRadius;
       var halfW = width / 2;
       var halfH = height / 2;
       cornerRadius = cornerRadius === 'auto' ? getRoundPolygonRadius(width, height) : cornerRadius;
@@ -102793,7 +102819,7 @@ sheetfn.appendToStyle = function (style) {
   return style;
 };
 
-var version = "3.34.0";
+var version = "3.34.1";
 
 var cytoscape$1 = function cytoscape(options) {
   // if no options specified, use default

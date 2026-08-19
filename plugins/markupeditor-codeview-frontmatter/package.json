@@ -1,17 +1,17 @@
 {
-  "name": "markupeditor-codeview-mermaid",
+  "name": "markupeditor-codeview-frontmatter",
   "version": "1.0.0",
-  "description": "MarkupEditor codeview plugin for Mermaid diagrams.",
+  "description": "MarkupEditor codeview plugin that renders a leading HTML preamble block live, GitHub-README style, instead of as literal escaped text.",
   "type": "module",
-  "main": "dist/markupeditor-codeview-mermaid.js",
+  "main": "dist/markupeditor-codeview-frontmatter.js",
   "license": "MIT",
   "author": "Steven G. Harris <steven.g.harris@gmail.com>",
   "markupeditor": {
-    "name": "Mermaid",
+    "name": "FrontMatter",
     "type": "codeview"
   },
   "dependencies": {
-    "mermaid": "^11.16.0"
+    "dompurify": "^3.4.13"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^29.0.3",
