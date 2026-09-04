@@ -2,33 +2,33 @@
   "codeview": {
     "GeoJSON": {
       "name": "GeoJSON",
-      "filename": "markupeditor-codeview-geojson.js",
+      "filename": "codeview-geojson.js",
       "description": "MarkupEditor codeview plugin that renders geojson code blocks as a live, interactive Leaflet map.",
       "author": "Steven G. Harris <steven.g.harris@gmail.com>",
       "version": "1.0.0",
-      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/markupeditor-codeview-geojson",
-      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/markupeditor-codeview-geojson/dist/markupeditor-codeview-geojson.js"
+      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/codeview-geojson",
+      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/codeview-geojson/dist/codeview-geojson.js"
     },
     "Mermaid": {
       "name": "Mermaid",
-      "filename": "markupeditor-codeview-mermaid.js",
+      "filename": "codeview-mermaid.js",
       "description": "MarkupEditor codeview plugin for Mermaid diagrams.",
       "author": "Steven G. Harris <steven.g.harris@gmail.com>",
       "version": "1.0.0",
-      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/markupeditor-codeview-mermaid",
-      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/markupeditor-codeview-mermaid/dist/markupeditor-codeview-mermaid.js"
+      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/codeview-mermaid",
+      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/codeview-mermaid/dist/codeview-mermaid.js"
     }
   },
   "exporter": {
     "DocX": {
       "name": "DocX",
-      "filename": "markupeditor-exporter-docx.js",
+      "filename": "exporter-docx.js",
       "ext": "docx",
       "description": "MarkupEditor exporter plugin for DOCX.",
       "author": "Steven G. Harris <steven.g.harris@gmail.com>",
       "version": "0.1.0",
-      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/markupeditor-exporter-docx",
-      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/markupeditor-exporter-docx/dist/markupeditor-exporter-docx.js"
+      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/exporter-docx",
+      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/exporter-docx/dist/exporter-docx.js"
     }
   }
 }
