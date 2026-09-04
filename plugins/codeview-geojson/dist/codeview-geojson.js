@@ -14637,7 +14637,17 @@ function renderGeojson(geojson, map) {
         pointToLayer: (feature, latlng) => L$1.circleMarker(latlng)
     }).addTo(map);
     const bounds = map._geojsonLayer.getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds);
+    // An empty FeatureCollection, or a Feature with geometry: null, is valid
+    // GeoJSON (RFC 7946 §3.2) but has nothing to fit a view to -- invalid
+    // bounds here means zero renderable geometry, not a Leaflet-internal
+    // edge case to shrug off. Left unhandled, the map never gets a view
+    // (fitBounds is the only thing that sets one), so it never becomes
+    // "loaded" and the tile layer's own onAdd -- deferred until then -- never
+    // runs: a permanently blank map with no error reported. Throwing routes
+    // this through ensureRendered's existing catch, which reports it and
+    // falls back to Source, exactly like any other unrenderable content.
+    if (!bounds.isValid()) throw new Error('GeoJSON contains no renderable geometry.')
+    map.fitBounds(bounds);
 }
 
 // Constructs a fully-initialized Leaflet map instance -- the base tile layer
@@ -14690,7 +14700,7 @@ function defaultMapFactory(container, onPersistentTileFailure) {
 }
 
 // Instances add themselves in the constructor, remove themselves in
-// destroy() -- mirrors MermaidView/FrontMatterView's liveInstances.
+// destroy() -- mirrors MermaidView/HTMLFrontMatterView's liveInstances.
 const liveInstances = new Set();
 
 /**
@@ -14704,7 +14714,7 @@ const liveInstances = new Set();
  * tabs. Mode ('source' | 'map') is plain instance state.
  *
  * Rendering here is synchronous -- no pending state, no render token, no
- * async staleness guard needed. Unlike FrontMatterView, invalid input is a
+ * async staleness guard needed. Unlike HTMLFrontMatterView, invalid input is a
  * real, expected case (arbitrary code_block content, not already-sanitized
  * HTML) that must fall back to Source and report an error exactly once,
  * matching MermaidView's error handling.
@@ -14786,7 +14796,7 @@ class GeoJSONView extends MU.CodeView {
     }
 
     // codeLanguageTabPlugin (markupeditor-base) only calls setActive when the
-    // SELECTED instance itself changes -- matches MermaidView/FrontMatterView's
+    // SELECTED instance itself changes -- matches MermaidView/HTMLFrontMatterView's
     // reasoning for why setMode must also re-sync the border, not just setActive.
     syncSelectedClass() {
         this.mapContainer.classList.toggle(MAP_SELECTED_CLASS, this.isActive && this.mode === 'map');
@@ -15150,7 +15160,7 @@ class GeoJSONPlugin {
                 // WebKit can't place a caret inside zero-size (font-size: 0) text, so
                 // it falls back to painting one at the nearest non-collapsed content
                 // instead -- scoping caret-color to the editor root (not the hidden
-                // text itself) is the actual fix, matching MermaidPlugin/FrontMatterPlugin.
+                // text itself) is the actual fix, matching MermaidPlugin/HTMLFrontMatterPlugin.
                 const syncCaretClass = (v) => {
                     const sel = v.state.selection;
                     let hideCaret = false;
@@ -15176,7 +15186,7 @@ class GeoJSONPlugin {
 
     // Delegates to whatever's already installed for code_block, not assumed
     // to be CodeView specifically -- composable with any other independently-
-    // loaded code_block NodeView plugin (Mermaid, FrontMatter, or a future
+    // loaded code_block NodeView plugin (Mermaid, HTMLFrontMatter, or a future
     // one), the same capture-wrap-delegate contract they all follow.
     makeCodeBlockFactory(originalFactory, languageDialog, geojsonViewOptions = {}) {
         return (node, view, getPos) => {

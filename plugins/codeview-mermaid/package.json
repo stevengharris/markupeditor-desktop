@@ -1,28 +1,25 @@
 {
-  "name": "markupeditor-exporter-docx",
-  "version": "0.1.0",
-  "description": "MarkupEditor exporter plugin for DOCX.",
+  "name": "codeview-mermaid",
+  "version": "1.0.0",
+  "description": "MarkupEditor codeview plugin for Mermaid diagrams.",
   "type": "module",
-  "main": "dist/markupeditor-exporter-docx.js",
+  "main": "dist/codeview-mermaid.js",
   "license": "MIT",
   "author": "Steven G. Harris <steven.g.harris@gmail.com>",
   "markupeditor": {
-    "name": "DocX",
-    "type": "exporter",
-    "ext": "docx"
+    "name": "Mermaid",
+    "type": "codeview"
   },
   "dependencies": {
-    "buffer": "^6.0.3",
-    "docx": "^9.7.1"
+    "mermaid": "^11.16.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^29.0.3",
-    "@rollup/plugin-inject": "^5.0.5",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "jsdom": "^27.0.1",
-    "jszip": "^3.10.1",
-    "markupeditor": "^0.9.32",
+    "markupeditor": "^0.9.28",
     "rollup": "^4.31.0",
+    "rollup-plugin-import-css": "^4.0.1",
     "vitest": "^3.2.4"
   },
   "scripts": {
