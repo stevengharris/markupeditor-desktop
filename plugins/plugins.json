@@ -1,14 +1,5 @@
 {
   "codeview": {
-    "FrontMatter": {
-      "name": "FrontMatter",
-      "filename": "markupeditor-codeview-frontmatter.js",
-      "description": "MarkupEditor codeview plugin that renders a leading HTML preamble block live, GitHub-README style, instead of as literal escaped text.",
-      "author": "Steven G. Harris <steven.g.harris@gmail.com>",
-      "version": "1.0.0",
-      "repo": "https://github.com/stevengharris/markupeditor-desktop/tree/main/plugins/markupeditor-codeview-frontmatter",
-      "source": "https://raw.githubusercontent.com/stevengharris/markupeditor-desktop/main/plugins/markupeditor-codeview-frontmatter/dist/markupeditor-codeview-frontmatter.js"
-    },
     "GeoJSON": {
       "name": "GeoJSON",
       "filename": "markupeditor-codeview-geojson.js",
